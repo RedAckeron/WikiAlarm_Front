@@ -1,5 +1,5 @@
 export const environment = {
     production: false,
-    apiUrl : 'https://localhost:7266'
+    apiUrl : 'http://ackeron.be/.api'
   };
   

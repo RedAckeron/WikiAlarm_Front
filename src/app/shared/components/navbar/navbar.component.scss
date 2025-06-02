@@ -5,3 +5,14 @@ select
 {
     height: 35px;
 }
+
+.Logo
+{
+    width: 200px;
+    background-color: rgb(255, 255, 255);
+    height: 50px;
+    background-image: url("../../../../assets/img/LogoBannerMini.gif");
+    background-size: 200px;
+    border: solid 1px rgb(253, 34, 34);
+    border-radius: 5px;
+}

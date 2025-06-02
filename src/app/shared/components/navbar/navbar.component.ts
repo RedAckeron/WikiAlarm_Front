@@ -5,7 +5,6 @@ import { Router, RouterLink } from '@angular/router';
 import { MenuItem, PrimeIcons } from 'primeng/api';
 import { Customer } from 'src/app/models/CustomerModel';
 import { AuthService } from 'src/app/Services/auth.service';
-import { CustomerService } from 'src/app/Services/customer.service';
 
 @Component({
   selector: 'app-navbar',
@@ -24,7 +23,7 @@ export class NavbarComponent implements OnInit{
   }
 
 
-  constructor(private _builder : FormBuilder,private _customerService:CustomerService,private _router : Router,private _authService:AuthService)
+  constructor(private _builder : FormBuilder,private _router : Router,private _authService:AuthService)
   {
     //On crée un nouveau formulaire grâce à notre FormBuilder et on le stocke dans notre propriété registerForm
     this.FindCustomerForm = this._builder.group({
@@ -48,38 +47,11 @@ export class NavbarComponent implements OnInit{
   adresses:[]
   };
 
-GetListCustomer()
-  {
-    if(this.FindCustomerForm.controls['FormFindCustomer'].value!="")
-    {
-    this._customerService.FindCustomers(this.FindCustomerForm.controls['FormFindCustomer'].value).subscribe((data)=>{
-      data.unshift(this.C1);
-    this.ListFindedCustomer=data;
-    this.FindCustomerForm.get("IdUserSelected")?.setValue(this.ListFindedCustomer[0].id);
-    });
-    }
-    else
-    {
-    //si la case de recherche est vide on vide le tableau de recherche
-      this.ListFindedCustomer=[];
-    }
-  }
-
-  showcustomer()
-  {
-    //console.log(this.FindCustomerForm.controls['IdUserSelected'].value);
-
-    if(this.FindCustomerForm.controls['IdUserSelected'].value != '0')
-    {
-      this._router.routeReuseStrategy.shouldReuseRoute = () => false;
-      this._router.onSameUrlNavigation = 'reload';
-      this._router.navigate(['customer/show/',this.FindCustomerForm.controls['IdUserSelected'].value]);
-    }
-  }
 
 logout()
   {
     this._authService.logout();
+      this._router.navigate(['/', 'home']);
   }
 
   ngOnInit() {
@@ -92,32 +64,21 @@ logout()
       }});
 
       this.items = [
-        {label: 'Home', icon: 'pi pi-fw pi-refresh',routerLink: ['/home']},
+        {label: 'Profil', icon: 'pi pi-user', routerLink: ['/profil']},
+        {label: 'Stock', icon: 'pi pi-shopping-cart', routerLink: ['/stock']},
         {
-          label: 'Client',
-          icon: 'pi pi-fw pi-pencil',
-          items: [
-              {label: 'List', icon: 'pi pi-fw pi-trash', routerLink: ['/customer/list']},
-              {label: 'Add', icon: 'pi pi-fw pi-refresh', routerLink: ['/customer/add']}
-          ]
-        },
-        {
-            label: 'Consultation',
-            icon: 'pi pi-fw pi-pencil',
+            label: 'Base de connaissance',
+            icon: 'pi pi-book',
             items: [
-                {label: 'Offre de prix', icon: 'pi pi-fw pi-trash',routerLink: ['/odp/list']},
-                {label: 'Bon de commande', icon: 'pi pi-fw pi-trash',routerLink: ['/cmd/list']},
-                {label: 'Facture', icon: 'pi pi-fw pi-trash',routerLink: ['/fct/list']},
-                {label: 'Repair', icon: 'pi pi-fw pi-trash',routerLink: ['/rpr/list']},
-                {label: 'Download content', icon: 'pi pi-fw pi-trash',routerLink: ['/dlc/list']},
-                {label: 'Articles', icon: 'pi pi-fw pi-refresh',routerLink: ['/item/list']}
+                {label: 'Intrusion', icon: 'pi pi-shield', routerLink: ['/Wiki/intrusion']},
+                {label: 'Incendie', icon: 'pi pi-exclamation-triangle', routerLink: ['/Wiki/incendie']},
+                {label: 'Control Acces', icon: 'pi pi-key', routerLink: ['/Wiki/ctrlacces']},
+                {label: 'Cctv', icon: 'pi pi-camera', routerLink: ['/Wiki/cctv']}
             ]
       },
-        {label: 'Admin', icon: 'pi pi-download', routerLink: ['/home']},
-        {label: 'Logout', icon: 'pi pi-download',command:(event)=>{this.logout();} },
+        {label: 'Admin', icon: 'pi pi-cog', routerLink: ['/Admin']},
+        {label: 'Logout', icon: 'pi pi-sign-out',command:(event)=>{this.logout();} },
       ];
-
-
   }
 }
 

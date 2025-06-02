@@ -11,13 +11,22 @@ export class OdpService
     private _url: string = "https://localhost:7266/Odp/";
     constructor(private _httpClient: HttpClient) {}
 
+
+
+
     AddOdp(IdUser:number,IdCust:Number):Observable<Number>
         {
           return this._httpClient.post<Number>(this._url + "Create",{AddByUser:IdUser,IdCustomer:IdCust});
         }
 
-    ReadAllOdpLight(IdCust: number):Observable<OdpLight[]>
+    ReadAllCstOdpLight(IdCust: number):Observable<OdpLight[]>
         {
-        return this._httpClient.get<OdpLight[]>(this._url + "ReadAllOdpLight/" + IdCust);
+        return this._httpClient.get<OdpLight[]>(this._url + "ReadAllCstOdpLight/" + IdCust);
         }
+
+    ReadLastOdpLight():Observable<OdpLight[]>
+        {
+          return this._httpClient.get<OdpLight[]>(this._url+"ReadLastOdpLight");
+        }
+    
     }

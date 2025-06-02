@@ -10,6 +10,7 @@ import { UserService } from 'src/app/Services/user.service';
 })
 export class FooterComponent implements OnInit {
   private _isConnected! : Boolean;
+  userEmail: string = '';
 
   get isConnected()
   {
@@ -35,6 +36,12 @@ export class FooterComponent implements OnInit {
       next: (value : Boolean) => 
       {
         this._isConnected=value
+        if (value) {
+          const user = this._authService.userValue;
+          if (user) {
+            this.userEmail = user.email;
+          }
+        }
       }});
 
 

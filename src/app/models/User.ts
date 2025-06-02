@@ -8,7 +8,8 @@ export class User
     dtIn:Date;
     addByUser:number;
     CurrentCustomer:number=0;
-    constructor(Id:number,DtIn:Date,email:string,firstName:string,lastName:string)
+    ApiMessage:string;
+    constructor(Id:number,DtIn:Date,email:string,firstName:string,lastName:string,ApiMessage:string)
     {
     this.id=Id;
     this.email=email;
@@ -17,5 +18,6 @@ export class User
     this.lastName=lastName;
     this.dtIn=DtIn;
     this.addByUser=1;
+    this.ApiMessage=ApiMessage;
      }
 }

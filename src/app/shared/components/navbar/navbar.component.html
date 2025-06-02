@@ -1,14 +1,4 @@
-
 <p-menubar [model]="items" >
-  <form [formGroup]="FindCustomerForm" class="d-flex" role="search" *ngIf="isConnected">
-    <input type="text" list="ListCust" formControlName="FormFindCustomer" placeholder="Nom du client" (keyup)="GetListCustomer()">
-    <div *ngIf="((ListFindedCustomer!=null)&&(ListFindedCustomer.length>1))">
-      <select formControlName="IdUserSelected" id="ListCust" name="cars" (change)="showcustomer()" class="form-select" aria-label="small select example">
-        <option *ngFor="let item of ListFindedCustomer" [ngValue]="item.id">{{item.lastName}} {{item.firstName}}</option>
-      </select>
-    </div>
-  </form>
   <ng-template pTemplate="start">
-    <a routerLink="home"><img src="../../../../assets/img/sugar_logo_mini.jpg" height="40" class="mr-2" /></a>
-</ng-template>
+  </ng-template>
 </p-menubar>

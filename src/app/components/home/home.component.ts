@@ -5,7 +5,6 @@ import { interval } from 'rxjs';
 import { User } from 'src/app/models/User';
 import { AuthService } from 'src/app/Services/auth.service';
 
-
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
@@ -15,31 +14,32 @@ import { AuthService } from 'src/app/Services/auth.service';
 
 export class HomeComponent implements OnInit{
   private _isConnected! : Boolean;
-
   get isConnected()
   {
     return this._isConnected;
   }
+  
 IdUser?:string;
 email!:string;
 password!:string;
 user!:User;
 
-  constructor(private messageService: MessageService,private _authService:AuthService) {}
-  show() {
-      this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Message Content' });
-    }
+constructor(private messageService: MessageService,private _authService:AuthService) {}
 
-ngOnInit(): void {
-this._authService.IsConnected.subscribe({
-  next:(value)=>
+show() 
+  {
+    this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Message Content' });
+  }
+
+ngOnInit(): void 
+  {
+  this._authService.IsConnected.subscribe(
     {
-      console.log("connected ? : "+value)
-      this._isConnected=value
-    }});
-    }
-  
+    next:(value)=>
+      {
+        console.log("connected ? : "+value)
+        this._isConnected=value
+      }
+    });
+  }
 }
-
-
-

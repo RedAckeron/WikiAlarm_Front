@@ -18,12 +18,18 @@ export class Odp
     }
 export class OdpLight
      {
-         id:number;
-         dtIn:Date;
-
-         constructor(Id:number,dtIn:Date)
+        id:number;
+        name:string;
+        dtIn:Date;
+        nbItem:number;
+        prxTtl:number;
+        
+        constructor(Id:number,Name:string,dtIn:Date,NbItem:number,PrxTtl:number)
           {
           this.id=Id;
+          this.name=Name;
           this.dtIn=dtIn;
+          this.nbItem=NbItem;
+          this.prxTtl=PrxTtl;
           }
      }

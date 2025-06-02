@@ -24,6 +24,17 @@
         border: 2px solid #DEE2E6;
         border-radius: 5px;
         }
+        
+.Logo
+{
+    width: 200px;
+    background-color: rgb(255, 255, 255);
+    height: 50px;
+    background-image: url("../assets/img/LogoBannerMini.gif");
+    background-size: 200px;
+    border: solid 1px rgb(253, 34, 34);
+    border-radius: 5px;
+}
     }
 
 @media (min-width: 720px) 
@@ -54,5 +65,16 @@
         border-radius: 5px;
         padding: 5px;
         }
+        
+    .Logo
+    {
+        width: 200px;
+        background-color: rgb(255, 255, 255);
+        height: 50px;
+        background-image: url("../assets/img/LogoBannerMini.gif");
+        background-size: 200px;
+        border: solid 1px rgb(253, 34, 34);
+        border-radius: 5px;
+    }
     }
 

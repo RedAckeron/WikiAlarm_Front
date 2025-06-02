@@ -1,0 +1,43 @@
+label{
+    width:100px
+}
+
+.ContainerLogin
+{  
+    width: 400px;
+    display: flex;
+    justify-content: center;
+    height: auto;   
+    margin: 20px auto;
+    border : 1px solid black;
+    border-radius: 10px;    
+    padding: 10px;
+    background-color: #F8F9FA ;   
+    border: 1px solid black;
+    border-radius: 5px;
+}
+
+.ContainerRegister
+{  
+    width: 400px;
+    display: flex;
+    justify-content: center;
+    height: auto;   
+    margin: 20px auto;
+    border : 1px solid black;
+    border-radius: 10px;    
+    padding: 2px;
+    background-color: #F8F9FA ;   
+    border: 1px solid black;
+    border-radius: 5px;
+}
+input.invalid {
+  border: 1px solid crimson;
+  background-color: #ffe6e6;
+}
+
+.error {
+  color: crimson;
+  font-size: 0.9em;
+  margin-top: 4px;
+}

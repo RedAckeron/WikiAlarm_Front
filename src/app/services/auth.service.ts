@@ -15,19 +15,20 @@ export class AuthService {
 
   get IsConnected() : BehaviorSubject<Boolean>
   {
-    return this._isConnected;
+   return this._isConnected;
   }
 
   private _UserSubject : BehaviorSubject<User|null>
   public user!:Observable<User|null>;
   public headers = new HttpHeaders().set('Content-Type', 'application/json')
+
   constructor(private _httpClient: HttpClient,private _tokenService:TokenService)
   {
     let token :string | null =this._tokenService.getToken();
     //console.log("TOKEN : "+token);
     let IdUser:number=this._tokenService.getUserId();
     //console.log("Type de userid : "+typeof(IdUser));
-    
+
     if(token)
     {
       this._UserSubject = new BehaviorSubject<User|null>(JSON.parse(token))
@@ -37,6 +38,7 @@ export class AuthService {
     {
       this._UserSubject= new BehaviorSubject<User|null>(null)
     }
+    
   }
 
   public get userValue(): User|null {
@@ -50,23 +52,35 @@ export class AuthService {
 
   login(userform:UserFormLogin):Observable<User>
     {
-    return this._httpClient.post<any>(`${environment.apiUrl }/User/Login/`,{email:userform.Email,password:userform.Password})
+    return this._httpClient.post<any>(`${environment.apiUrl }/portal/?route=login`,{email:userform.Email,password:userform.Password})
     .pipe(map(user=>
         {
-          if(user.id!=0)
+          if(user.JsonResult.id!=0)
           {
-            this._UserSubject.next(user.token);
+            //this._UserSubject.next(user.token);
             this.IsConnected.next(true);
           }
-          return user;
+          return user.JsonResult;
         }))
     }
- 
+
+  register(_registerForm:UserFormLogin):Observable<User>
+    {
+    return this._httpClient.post<any>(`${environment.apiUrl }/portal/?route=register`,{email:_registerForm.Email,password:_registerForm.Password})
+        .pipe(map(user=>
+            {
+              if(user.JsonResult.id!=0)
+              {
+                //this._UserSubject.next(user.token);
+                this.IsConnected.next(true);
+              }
+              return user.JsonResult;
+            }))
+    }
+
   logout()
     {
     sessionStorage.removeItem("IdUser");
     this.IsConnected.next(false);
     }
-
-
   }

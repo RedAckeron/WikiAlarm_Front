@@ -1,10 +1,9 @@
 import { HttpResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { UserFormLogin } from 'src/app/models/Forms/UsersFormLogin';
-import { User } from 'src/app/models/User';
 import { AuthService } from 'src/app/Services/auth.service';
 import { TokenService } from 'src/app/Services/Token.service';
 import { UserService } from 'src/app/Services/user.service';
@@ -15,6 +14,7 @@ import { UserService } from 'src/app/Services/user.service';
   providers: [MessageService]
 
 })
+
 export class LoginComponent implements OnInit {
   public errormessage:string="";
   public userForm! : UserFormLogin
@@ -36,6 +36,7 @@ export class LoginComponent implements OnInit {
     })
   }
 
+  
   onSubmit(): void{
     if(this.loginUser.valid)
     {
@@ -70,4 +71,7 @@ export class LoginComponent implements OnInit {
     this.messageService.add({ severity: 'error', summary: 'Erreur', detail: 'Les champs du formulaire sont invalide' });
   }
   }
+
+
+
 }

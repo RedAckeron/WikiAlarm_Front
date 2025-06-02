@@ -2,7 +2,7 @@ label{
     width:100px
 }
 
-.Container
+.ContainerLogin
 {  
     width: 400px;
     display: flex;
@@ -12,6 +12,21 @@ label{
     border : 1px solid black;
     border-radius: 10px;    
     padding: 10px;
+    background-color: #F8F9FA ;   
+    border: 1px solid black;
+    border-radius: 5px;
+}
+
+.ContainerRegister
+{  
+    width: 400px;
+    display: flex;
+    justify-content: center;
+    height: auto;   
+    margin: 20px auto;
+    border : 1px solid black;
+    border-radius: 10px;    
+    padding: 2px;
     background-color: #F8F9FA ;   
     border: 1px solid black;
     border-radius: 5px;

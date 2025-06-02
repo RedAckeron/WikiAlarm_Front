@@ -1,64 +1,32 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { ShowCustomerComponent } from './components/customer/show-customer/show-customer.component';
-import { AddCustomerComponent } from './components/customer/add-customer/add-customer.component';
-import { AddCommandComponent } from './components/command/add-command/add-command.component';
-import { ShowCommandComponent } from './components/command/show-command/show-command.component';
-import { ListCustomerComponent } from './components/customer/list-customer/list-customer.component';
-import { ProfilComponent } from './components/user/profil/profil.component';
-import { LobbyComponent } from './components/Admin/lobby/lobby.component';
-import { HomeComponent } from './components/Home/home.component';
-import { NotFoundComponent } from './components/Not-found/not-found.component';
 import { TestComponent } from './components/test/test.component';
-
+import { NotFoundComponent } from './components/not-found/not-found.component';
+import { HomeComponent } from './components/home/home.component';
+import { ProfilComponent } from './components/profil/profil.component';
+import { IntrusionComponent } from './components/Wiki/intrusion/intrusion.component';
+import { IncendieComponent } from './components/Wiki/incendie/incendie.component';
+import { CtrlaccesComponent } from './components/Wiki/ctrlacces/ctrlacces.component';
+import { CctvComponent } from './components/Wiki/cctv/cctv.component';
+import { StockComponent } from './components/stock/stock.component';
+import { AdminComponent } from './components/Admin/admin.component';
 
 const routes: Routes = [
-  {path : 'test',component : TestComponent},
   {path : '',component : HomeComponent},
   {path : 'home',component : HomeComponent},
-
+  {path : 'profil',component : ProfilComponent},
+  {path : 'stock',component : StockComponent},
   {
-    path : 'user',children:
+    path : 'Wiki',children:
     [
-    {path : 'profil',component : ProfilComponent},
+      {path : 'intrusion',component : IntrusionComponent},
+      {path : 'incendie',component : IncendieComponent},
+      {path : 'ctrlacces',component : CtrlaccesComponent},
+      {path : 'cctv',component : CctvComponent}
     ]
   },
-  {
-    path : 'customer',children:
-    [
-    {path : 'list',component : ListCustomerComponent},
-    {path : 'add',component : AddCustomerComponent},
-    {path : 'show/:id',component : ShowCustomerComponent},
-    ]
-  },
-  {
-    path : 'odp',children:
-    [
-    {path : 'add',component : AddCommandComponent},
-    {path : 'show',component : ShowCommandComponent},
-    ]
-  },
-  {
-    path : 'cmd',children:
-    [
-    {path : 'add',component : AddCommandComponent},
-    {path : 'show',component : ShowCommandComponent},
-    ]
-  },
-  {
-    path : 'fct',children:
-    [
-    {path : 'add',component : AddCommandComponent},
-    {path : 'show',component : ShowCommandComponent},
-    ]
-  },
-  {
-    path : 'admin',children:
-    [
-      {path : 'lobby',component : LobbyComponent},
-      {path : 'show',component : ShowCommandComponent},
-    ]
-  },
+  {path : 'Admin',component : AdminComponent},
+  {path : 'test',component : TestComponent},
   {path:'**',component:NotFoundComponent}
 ];
 

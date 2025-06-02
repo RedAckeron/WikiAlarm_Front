@@ -1,0 +1,35 @@
+<div class="ContainerLogin">
+  <div>
+
+ <form [formGroup]="RegisterUser" (ngSubmit)="onSubmit()" >
+      <div>
+        <h3>Création d un compte </h3>
+       <label> E-mail :</label>
+      <input type="text" formControlName="Email">
+
+      <div *ngIf="RegisterUser.get('Email')?.invalid && RegisterUser.get('Email')?.touched" class="error">
+        <small *ngIf="RegisterUser.get('Email')?.errors?.['required']">L'e-mail est requis</small>
+        <small *ngIf="RegisterUser.get('Email')?.errors?.['email']">Format d'e-mail invalide</small>
+      </div>
+      </div>
+    
+      <div>
+        <label>Mot de passe :</label>
+<input type="password" formControlName="Password" [ngClass]="{'invalid': RegisterUser.get('Password')?.invalid && RegisterUser.get('Password')?.touched}">
+
+<div *ngIf="RegisterUser.get('Password')?.touched && RegisterUser.get('Password')?.invalid" class="error">
+  <small *ngIf="RegisterUser.get('Password')?.errors?.['required']">Le mot de passe est requis</small>
+  <small *ngIf="RegisterUser.get('Password')?.errors?.['minlength']">Le mot de passe doit faire au moins 6 caractères</small>
+</div>
+      </div>
+    
+      <div>
+        <input type="submit" value="Enregistrer">
+      </div>
+    </form>
+
+  </div>
+</div>
+
+
+<p-toast></p-toast>

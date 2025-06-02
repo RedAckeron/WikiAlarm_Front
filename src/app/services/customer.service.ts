@@ -20,6 +20,8 @@ export class CustomerService
 
   CreateCustomer(Cust:Customer):any
     {
+      console.log(Cust);
+      
       return this._httpClient.post<Customer>(this._url + "Create", Cust);
     }
 
