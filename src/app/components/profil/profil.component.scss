@@ -1,0 +1,61 @@
+.profile-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+    min-height: calc(100vh - 150px); // Ajustement pour le header et footer
+
+    .profile-card {
+        width: 100%;
+        max-width: 500px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+
+        ::ng-deep {
+            .p-card-header {
+                text-align: center;
+                font-size: 1.5rem;
+                font-weight: 600;
+                color: var(--primary-color);
+                padding: 1.5rem 1rem 1rem;
+            }
+
+            .p-card-content {
+                padding: 1.5rem;
+            }
+        }
+    }
+
+    .field {
+        margin-bottom: 1.5rem;
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-color);
+        }
+
+        .p-input-icon-left {
+            width: 100%;
+
+            i {
+                color: var(--primary-color);
+            }
+        }
+
+        input, .p-password {
+            width: 100%;
+        }
+    }
+
+    .p-button {
+        width: 100%;
+        margin-top: 1rem;
+    }
+
+    .p-error {
+        display: block;
+        margin-top: 0.25rem;
+        font-size: 0.875rem;
+    }
+}

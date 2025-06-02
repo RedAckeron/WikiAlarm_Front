@@ -1,8 +1,65 @@
-<div class="container" >
+<div class="container">
    <div class="LogoContainer">
       <div class="Logo"></div>
    </div>
+
+   <div class="login-container" *ngIf="!isConnected">
+      <p-card header="Connexion" styleClass="login-card">
+         <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+            <div class="p-fluid">
+               <div class="field">
+                  <label for="Email">Email</label>
+                  <span class="p-input-icon-left">
+                     <i class="pi pi-envelope"></i>
+                     <input 
+                        id="Email" 
+                        type="email" 
+                        pInputText 
+                        formControlName="Email"
+                        [ngClass]="{'ng-invalid ng-dirty': loginForm.get('Email')?.invalid && loginForm.get('Email')?.touched}"
+                     >
+                  </span>
+                  <small class="p-error" *ngIf="loginForm.get('Email')?.invalid && loginForm.get('Email')?.touched">
+                     <span *ngIf="loginForm.get('Email')?.errors?.['required']">L'email est requis.</span>
+                     <span *ngIf="loginForm.get('Email')?.errors?.['email']">Format d'email invalide.</span>
+                  </small>
+               </div>
+
+               <div class="field">
+                  <label for="Password">Mot de passe</label>
+                  <span class="p-input-icon-left">
+                     <i class="pi pi-lock"></i>
+                     <p-password 
+                        id="Password" 
+                        formControlName="Password"
+                        [feedback]="false"
+                        [toggleMask]="true"
+                        [ngClass]="{'ng-invalid ng-dirty': loginForm.get('Password')?.invalid && loginForm.get('Password')?.touched}"
+                     ></p-password>
+                  </span>
+                  <small class="p-error" *ngIf="loginForm.get('Password')?.invalid && loginForm.get('Password')?.touched">
+                     <span *ngIf="loginForm.get('Password')?.errors?.['required']">Le mot de passe est requis.</span>
+                     <span *ngIf="loginForm.get('Password')?.errors?.['minlength']">Le mot de passe doit contenir au moins 6 caractères.</span>
+                  </small>
+               </div>
+
+               <div class="field">
+                  <p-button 
+                     type="submit" 
+                     label="Se connecter" 
+                     icon="pi pi-sign-in" 
+                     [loading]="loading"
+                     [disabled]="loginForm.invalid"
+                  ></p-button>
+               </div>
+            </div>
+         </form>
+      </p-card>
+   </div>
+
+   <div class="WelcomeText" *ngIf="isConnected">
+      <h5>Bienvenue sur WikiAlarm</h5>
+   </div>
 </div>
-<div class="WelcomeText">
-   <h5>Bienvenu </h5>
-</div>
+
+<p-toast position="top-right"></p-toast>

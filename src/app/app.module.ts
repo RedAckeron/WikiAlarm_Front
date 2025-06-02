@@ -26,6 +26,11 @@ import { IncendieComponent } from './components/Wiki/incendie/incendie.component
 import { CtrlaccesComponent } from './components/Wiki/ctrlacces/ctrlacces.component';
 import { CctvComponent } from './components/Wiki/cctv/cctv.component';
 import { StockComponent } from './components/stock/stock.component';
+import { MessageService } from 'primeng/api';
+import { CardModule } from 'primeng/card';
+import { PasswordModule } from 'primeng/password';
+import { CommonModule } from '@angular/common';
+import { HomeModule } from './components/home/home.module';
 
 @NgModule({
   schemas:[CUSTOM_ELEMENTS_SCHEMA],
@@ -48,6 +53,7 @@ import { StockComponent } from './components/stock/stock.component';
     BrowserModule,
     BrowserAnimationsModule,
     FormsModule,
+    CommonModule,
     AppRoutingModule,
     ReactiveFormsModule,
     HttpClientModule,
@@ -59,9 +65,12 @@ import { StockComponent } from './components/stock/stock.component';
     TagModule,
     AccordionModule,
     MenubarModule,
-    InputTextModule
+    InputTextModule,
+    CardModule,
+    PasswordModule,
+    HomeModule
   ],
-  providers: [],
+  providers: [MessageService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

@@ -10,22 +10,23 @@ import { CtrlaccesComponent } from './components/Wiki/ctrlacces/ctrlacces.compon
 import { CctvComponent } from './components/Wiki/cctv/cctv.component';
 import { StockComponent } from './components/stock/stock.component';
 import { AdminComponent } from './components/Admin/admin.component';
+import { AuthGuard } from './guards/auth.guard';
 
 const routes: Routes = [
   {path : '',component : HomeComponent},
   {path : 'home',component : HomeComponent},
-  {path : 'profil',component : ProfilComponent},
-  {path : 'stock',component : StockComponent},
+  {path : 'profil',component : ProfilComponent, canActivate: [AuthGuard]},
+  {path : 'stock',component : StockComponent, canActivate: [AuthGuard]},
   {
     path : 'Wiki',children:
     [
-      {path : 'intrusion',component : IntrusionComponent},
-      {path : 'incendie',component : IncendieComponent},
-      {path : 'ctrlacces',component : CtrlaccesComponent},
-      {path : 'cctv',component : CctvComponent}
+      {path : 'intrusion',component : IntrusionComponent, canActivate: [AuthGuard]},
+      {path : 'incendie',component : IncendieComponent, canActivate: [AuthGuard]},
+      {path : 'ctrlacces',component : CtrlaccesComponent, canActivate: [AuthGuard]},
+      {path : 'cctv',component : CctvComponent, canActivate: [AuthGuard]}
     ]
   },
-  {path : 'Admin',component : AdminComponent},
+  {path : 'Admin',component : AdminComponent, canActivate: [AuthGuard]},
   {path : 'test',component : TestComponent},
   {path:'**',component:NotFoundComponent}
 ];

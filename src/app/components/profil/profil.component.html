@@ -1,21 +1,59 @@
-<div class="container">
-    <div>
-    <h3>Profil utilisateur</h3>
-  <form [formGroup]="loginUser" (ngSubmit)="onSubmit()" >
-      <div>
-        <label> E-mail :</label>
-        <input type="text" formControlName="Email">
-      </div>
-    
-      <div>
-        <label> Pasword :</label>
-        <input type="password" formControlName="Password">
-      </div>
-    
-      <div>
-        <input type="submit" value="Update">
-      </div>
-    </form>
-  </div>
+<div class="profile-container">
+    <p-card header="Profil Utilisateur" styleClass="profile-card">
+        <form [formGroup]="loginUser" (ngSubmit)="onSubmit()">
+            <div class="p-fluid">
+                <div class="field">
+                    <label for="email">E-mail</label>
+                    <span class="p-input-icon-left">
+                        <i class="pi pi-envelope"></i>
+                        <input 
+                            id="email"
+                            type="email" 
+                            pInputText 
+                            formControlName="Email"
+                            [ngClass]="{'ng-invalid ng-dirty': loginUser.get('Email')?.invalid && loginUser.get('Email')?.touched}"
+                        >
+                    </span>
+                    <small class="p-error" *ngIf="loginUser.get('Email')?.invalid && loginUser.get('Email')?.touched">
+                        <span *ngIf="loginUser.get('Email')?.errors?.['required']">L'email est requis.</span>
+                        <span *ngIf="loginUser.get('Email')?.errors?.['email']">Format d'email invalide.</span>
+                    </small>
+                </div>
+
+                <div class="field">
+                    <label for="password">Mot de passe</label>
+                    <span class="p-input-icon-left">
+                        <i class="pi pi-lock"></i>
+                        <p-password 
+                            id="password"
+                            formControlName="Password"
+                            [toggleMask]="true"
+                            [feedback]="true"
+                            [ngClass]="{'ng-invalid ng-dirty': loginUser.get('Password')?.invalid && loginUser.get('Password')?.touched}"
+                            [weakLabel]="'Faible'"
+                            [mediumLabel]="'Moyen'"
+                            [strongLabel]="'Fort'"
+                            promptLabel="Entrez votre mot de passe"
+                        ></p-password>
+                    </span>
+                    <small class="p-error" *ngIf="loginUser.get('Password')?.invalid && loginUser.get('Password')?.touched">
+                        <span *ngIf="loginUser.get('Password')?.errors?.['required']">Le mot de passe est requis.</span>
+                        <span *ngIf="loginUser.get('Password')?.errors?.['minlength']">Le mot de passe doit contenir au moins 6 caractères.</span>
+                    </small>
+                </div>
+
+                <div class="field">
+                    <p-button 
+                        type="submit" 
+                        label="Mettre à jour" 
+                        icon="pi pi-check" 
+                        [loading]="loading"
+                        [disabled]="loginUser.invalid"
+                    ></p-button>
+                </div>
+            </div>
+        </form>
+    </p-card>
 </div>
-<p-toast></p-toast>
+
+<p-toast position="top-right"></p-toast>
