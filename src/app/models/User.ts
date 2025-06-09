@@ -1,6 +1,6 @@
 export class User
 {
-    id:number;
+    Id:number;
     email:string;
     password:string;
     firstName:string;
@@ -11,7 +11,7 @@ export class User
     ApiMessage:string;
     constructor(Id:number,DtIn:Date,email:string,firstName:string,lastName:string,ApiMessage:string)
     {
-    this.id=Id;
+    this.Id=Id;
     this.email=email;
     this.password="";
     this.firstName=firstName;

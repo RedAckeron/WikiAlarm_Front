@@ -1,35 +1,56 @@
-<div class="ContainerLogin">
-  <div>
+<div class="card">
+  <h2>Création d'un compte</h2>
+  <form [formGroup]="RegisterUser" (ngSubmit)="onSubmit()">
+    <div class="p-field">
+      <label for="email">Email</label>
+      <span class="p-input-icon-left">
+        <i class="pi pi-envelope"></i>
+        <input id="email" type="email" pInputText formControlName="Email" class="p-inputtext-lg" />
+      </span>
+      <small class="p-error" *ngIf="RegisterUser.get('Email')?.invalid && RegisterUser.get('Email')?.touched">
+        <span *ngIf="RegisterUser.get('Email')?.errors?.['required']">L'email est requis</span>
+        <span *ngIf="RegisterUser.get('Email')?.errors?.['email']">Format d'email invalide</span>
+      </small>
+    </div>
 
- <form [formGroup]="RegisterUser" (ngSubmit)="onSubmit()" >
-      <div>
-        <h3>Création d un compte </h3>
-       <label> E-mail :</label>
-      <input type="text" formControlName="Email">
+    <div class="p-field">
+      <label for="password">Mot de passe</label>
+      <p-password 
+        id="password" 
+        formControlName="Password" 
+        [toggleMask]="true"
+        [feedback]="true"
+        [promptLabel]="'Choisissez un mot de passe'"
+        [weakLabel]="'Trop simple'"
+        [mediumLabel]="'Moyen'"
+        [strongLabel]="'Complexe'"
+      ></p-password>
+      <small class="p-error" *ngIf="RegisterUser.get('Password')?.invalid && RegisterUser.get('Password')?.touched">
+        <span *ngIf="RegisterUser.get('Password')?.errors?.['required']">Le mot de passe est requis</span>
+        <span *ngIf="RegisterUser.get('Password')?.errors?.['minlength']">Le mot de passe doit contenir au moins 6 caractères</span>
+      </small>
+    </div>
 
-      <div *ngIf="RegisterUser.get('Email')?.invalid && RegisterUser.get('Email')?.touched" class="error">
-        <small *ngIf="RegisterUser.get('Email')?.errors?.['required']">L'e-mail est requis</small>
-        <small *ngIf="RegisterUser.get('Email')?.errors?.['email']">Format d'e-mail invalide</small>
-      </div>
-      </div>
-    
-      <div>
-        <label>Mot de passe :</label>
-<input type="password" formControlName="Password" [ngClass]="{'invalid': RegisterUser.get('Password')?.invalid && RegisterUser.get('Password')?.touched}">
+    <div class="p-field">
+      <p-button 
+        type="submit" 
+        label="Créer un compte" 
+        icon="pi pi-user-plus"
+        [disabled]="RegisterUser.invalid"
+        styleClass="p-button-primary"
+      ></p-button>
+    </div>
+  </form>
 
-<div *ngIf="RegisterUser.get('Password')?.touched && RegisterUser.get('Password')?.invalid" class="error">
-  <small *ngIf="RegisterUser.get('Password')?.errors?.['required']">Le mot de passe est requis</small>
-  <small *ngIf="RegisterUser.get('Password')?.errors?.['minlength']">Le mot de passe doit faire au moins 6 caractères</small>
-</div>
-      </div>
-    
-      <div>
-        <input type="submit" value="Enregistrer">
-      </div>
-    </form>
-
+  <div class="p-field" style="margin-top: 1rem;">
+    <p-button 
+      type="button" 
+      label="Retour" 
+      icon="pi pi-arrow-left"
+      (click)="goBack()"
+      styleClass="p-button-secondary"
+    ></p-button>
   </div>
 </div>
 
-
-<p-toast></p-toast>
+<p-toast position="bottom-right"></p-toast>

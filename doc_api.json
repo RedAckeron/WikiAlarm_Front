@@ -1,0 +1,706 @@
+﻿{
+    "Status": 200,
+    "Message": "Documentation de l'API rÃ©cupÃ©rÃ©e avec succÃ¨s",
+    "JsonResult": {
+        "title": "WikiAlarm API Documentation",
+        "version": "1.0",
+        "base_url": "http:\/\/192.168.1.44\/.api\/WikiAlarm\/",
+        "quick_reference": {
+            "users": {
+                "login": "POST \/?route=user\/login",
+                "create": "POST \/?route=user\/create",
+                "update": "POST \/?route=user\/update",
+                "get": "POST \/?route=user\/get",
+                "list": "GET \/?route=user\/list",
+                "delete": "POST \/?route=user\/delete",
+                "deactivate": "POST \/?route=user\/deactivate"
+            }
+        },
+        "endpoints": {
+            "user": {
+                "login": {
+                    "method": "POST",
+                    "url": "\/?route=user\/login",
+                    "description": "Connecte un utilisateur directement Ã  WikiAlarm",
+                    "body": {
+                        "email": "string (obligatoire)",
+                        "password": "string (obligatoire)"
+                    },
+                    "example": {
+                        "url": "POST http:\/\/192.168.1.44\/.api\/WikiAlarm\/?route=user\/login",
+                        "body": {
+                            "email": "devilder.d@gmail.com",
+                            "password": "motdepasse123"
+                        }
+                    },
+                    "response": {
+                        "Status": "number (200, 400, 401, 403, 405, 500)",
+                        "Message": "string",
+                        "ErrorMessage": "string (en cas d'erreur)",
+                        "JsonResult": {
+                            "Id": "number",
+                            "Name": "string",
+                            "Email": "string",
+                            "Role": "string",
+                            "WorkListCount": "number",
+                            "ApiKey": "string (clÃ© API unique et dÃ©finitive)"
+                        }
+                    }
+                },
+                "list": {
+                    "method": "GET",
+                    "url": "\/?route=user\/list",
+                    "description": "Liste tous les utilisateurs",
+                    "response": {
+                        "Status": "number (200, 400, 404, 500)",
+                        "Message": "string",
+                        "ErrorMessage": "string (en cas d'erreur)",
+                        "JsonResult": {
+                            "Id": "number",
+                            "Name": "string",
+                            "Email": "string",
+                            "Role": "string",
+                            "WorkListCount": "number"
+                        }
+                    }
+                },
+                "get": {
+                    "method": "POST",
+                    "url": "\/?route=user\/get",
+                    "description": "RÃ©cupÃ¨re un utilisateur spÃ©cifique Ã  partir de son Id. ClÃ© API obligatoire.",
+                    "body": {
+                        "ApiKey": "string (obligatoire)",
+                        "id": "number (obligatoire)"
+                    },
+                    "response": {
+                        "Status": "number (200, 400, 404, 405, 500)",
+                        "Message": "string",
+                        "ErrorMessage": "string (en cas d'erreur)",
+                        "JsonResult": {
+                            "Id": "number",
+                            "Name": "string",
+                            "Email": "string",
+                            "Role": "string",
+                            "WorkListCount": "number"
+                        }
+                    }
+                },
+                "create": {
+                    "method": "POST",
+                    "url": "\/?route=user\/create",
+                    "description": "CrÃ©e un nouvel utilisateur. GÃ©nÃ¨re une clÃ© ApiKey unique et dÃ©finitive Ã  la crÃ©ation.",
+                    "body": {
+                        "ApiKey": "string (obligatoire, clÃ© d'un administrateur existant)",
+                        "Name": "string (obligatoire)",
+                        "Email": "string (obligatoire)",
+                        "Password": "string (obligatoire, sera hashÃ© automatiquement)"
+                    },
+                    "example": {
+                        "url": "POST http:\/\/192.168.1.44\/.api\/WikiAlarm\/?route=user\/create",
+                        "body": {
+                            "ApiKey": "b56cd0ff9db0cf7959fccc33152ccf7f0c6d469e8da35a7ef1cf117e87b5f7a",
+                            "Name": "Nouvel Utilisateur",
+                            "Email": "nouveau@example.com",
+                            "Password": "motdepassesecurise123"
+                        }
+                    },
+                    "response": {
+                        "Status": "number (200, 400, 401, 500)",
+                        "Message": "string",
+                        "JsonResult": {
+                            "Id": "number",
+                            "Name": "string",
+                            "Email": "string",
+                            "Role": "string",
+                            "dtin": "number",
+                            "active": "number",
+                            "ApiKey": "string (clÃ© API unique et dÃ©finitive)"
+                        }
+                    }
+                },
+                "update": {
+                    "method": "POST",
+                    "url": "\/?route=user\/update",
+                    "description": "Met Ã  jour un utilisateur existant. ClÃ© API obligatoire. Les mots de passe sont automatiquement hashÃ©s avec bcrypt.",
+                    "body": {
+                        "id": "number (obligatoire)",
+                        "ApiKey": "string (obligatoire)",
+                        "Name": "string (optionnel)",
+                        "Email": "string (optionnel)",
+                        "Password": "string (optionnel, sera hashÃ© automatiquement)",
+                        "Role": "string (optionnel)",
+                        "active": "number (optionnel, 0 ou 1)"
+                    },
+                    "example": {
+                        "url": "POST http:\/\/192.168.1.44\/.api\/WikiAlarm\/?route=user\/update",
+                        "body": {
+                            "id": 37,
+                            "ApiKey": "b56cd0ff9db0cf7959fccc33152ccf7f0c6d469e8da35a7ef1cf117e87b5f7a",
+                            "Name": "Albert Muda ModifiÃ©",
+                            "Password": "nouveauMotDePasse123",
+                            "Role": "User"
+                        }
+                    },
+                    "response": {
+                        "Status": "number (200, 400, 404, 500)",
+                        "Message": "string",
+                        "JsonResult": {
+                            "Id": "number",
+                            "Name": "string",
+                            "Email": "string",
+                            "Role": "string",
+                            "active": "number",
+                            "ApiKey": "string",
+                            "dtin": "number",
+                            "WorkListCount": "number"
+                        }
+                    }
+                },
+                "delete": {
+                    "method": "POST",
+                    "url": "\/?route=user\/delete",
+                    "description": "Supprime un utilisateur. ClÃ© API obligatoire.",
+                    "body": {
+                        "id": "number (obligatoire)",
+                        "ApiKey": "string (obligatoire)"
+                    },
+                    "response": {
+                        "Status": "number (200, 400, 404, 500)",
+                        "Message": "string",
+                        "ErrorMessage": "string (en cas d'erreur)"
+                    }
+                },
+                "deactivate": {
+                    "method": "POST",
+                    "url": "\/?route=user\/deactivate",
+                    "description": "DÃ©sactive un utilisateur (active = 0) Ã  partir de son id. ClÃ© API obligatoire.",
+                    "body": {
+                        "ApiKey": "string (obligatoire)",
+                        "id": "number (obligatoire)"
+                    },
+                    "response": {
+                        "Status": "number (200, 400, 404, 500)",
+                        "Message": "string",
+                        "ErrorMessage": "string (en cas d'erreur)"
+                    }
+                }
+            },
+            "worklist": {
+                "list": {
+                    "method": "GET",
+                    "url": "\/worklist\/list.php",
+                    "description": "Liste toutes les worklists",
+                    "response": {
+                        "Status": "number (200, 500)",
+                        "Message": "string",
+                        "ErrorMessage": "string (en cas d'erreur)",
+                        "JsonResult": {
+                            "Id": "number",
+                            "Name": "string",
+                            "Description": "string | null",
+                            "AddBy": "number | null",
+                            "AddedByName": "string | null",
+                            "ItemCount": "number"
+                        }
+                    }
+                },
+                "get": {
+                    "method": "GET",
+                    "url": "\/worklist\/get.php?id={worklistId}",
+                    "description": "RÃ©cupÃ¨re une worklist spÃ©cifique avec ses items",
+                    "parameters": {
+                        "id": "number (required)"
+                    },
+                    "response": {
+                        "Status": "number (200, 400, 404)",
+                        "JsonResult": {
+                            "Id": "number",
+                            "Name": "string",
+                            "Description": "string | null",
+                            "AddBy": "number | null",
+                            "AddedByName": "string | null",
+                            "ItemCount": "number",
+                            "Items": {
+                                "Id": "number",
+                                "Name": "string",
+                                "Description": "string | null",
+                                "IdHardwareType": "number | null",
+                                "HardwareTypeName": "string | null",
+                                "IdStockCar": "number | null",
+                                "StockCarName": "string | null"
+                            }
+                        }
+                    }
+                },
+                "create": {
+                    "method": "POST",
+                    "url": "\/worklist\/create.php",
+                    "description": "CrÃ©e une nouvelle worklist",
+                    "body": {
+                        "Name": "string (required)",
+                        "Description": "string (optional)",
+                        "AddBy": "number (optional)"
+                    },
+                    "response": {
+                        "Status": "number (200, 400, 500)",
+                        "Message": "string",
+                        "JsonResult": {
+                            "Id": "number",
+                            "Name": "string",
+                            "Description": "string | null",
+                            "AddBy": "number | null",
+                            "AddedByName": "string | null",
+                            "ItemCount": "number"
+                        }
+                    }
+                },
+                "update": {
+                    "method": "PUT",
+                    "url": "\/worklist\/update.php?id={worklistId}",
+                    "description": "Met Ã  jour une worklist existante",
+                    "parameters": {
+                        "id": "number (required)"
+                    },
+                    "body": {
+                        "Name": "string (optional)",
+                        "Description": "string (optional)",
+                        "AddBy": "number (optional)"
+                    },
+                    "response": {
+                        "Status": "number (200, 400, 404, 500)",
+                        "Message": "string",
+                        "JsonResult": {
+                            "Id": "number",
+                            "Name": "string",
+                            "Description": "string | null",
+                            "AddBy": "number | null",
+                            "AddedByName": "string | null",
+                            "ItemCount": "number"
+                        }
+                    }
+                },
+                "delete": {
+                    "method": "DELETE",
+                    "url": "\/worklist\/delete.php?id={worklistId}",
+                    "description": "Supprime une worklist",
+                    "parameters": {
+                        "id": "number (required)"
+                    },
+                    "response": {
+                        "Status": "number (200, 400, 404, 500)",
+                        "Message": "string"
+                    }
+                }
+            },
+            "items": {
+                "list": {
+                    "method": "GET",
+                    "url": "\/stock\/items\/list.php",
+                    "description": "Liste tous les items",
+                    "response": {
+                        "Status": "number (200, 500)",
+                        "JsonResult": {
+                            "Id": "number",
+                            "Name": "string",
+                            "Description": "string | null",
+                            "IdHardwareType": "number | null",
+                            "HardwareTypeName": "string | null",
+                            "IdStockCar": "number | null",
+                            "StockCarName": "string | null",
+                            "IdWorkList": "number | null",
+                            "WorkListName": "string | null"
+                        }
+                    }
+                },
+                "get": {
+                    "method": "GET",
+                    "url": "\/stock\/items\/get.php?id={itemId}",
+                    "description": "RÃ©cupÃ¨re un item spÃ©cifique",
+                    "parameters": {
+                        "id": "number (required)"
+                    },
+                    "response": {
+                        "Status": "number (200, 400, 404)",
+                        "JsonResult": {
+                            "Id": "number",
+                            "Name": "string",
+                            "Description": "string | null",
+                            "IdHardwareType": "number | null",
+                            "HardwareTypeName": "string | null",
+                            "IdStockCar": "number | null",
+                            "StockCarName": "string | null",
+                            "IdWorkList": "number | null",
+                            "WorkListName": "string | null"
+                        }
+                    }
+                },
+                "create": {
+                    "method": "POST",
+                    "url": "\/stock\/items\/create.php",
+                    "description": "CrÃ©e un nouvel item",
+                    "body": {
+                        "Name": "string (required)",
+                        "Description": "string (optional)",
+                        "IdHardwareType": "number (optional)",
+                        "IdWorkList": "number (optional)"
+                    },
+                    "response": {
+                        "Status": "number (200, 400, 500)",
+                        "Message": "string",
+                        "JsonResult": {
+                            "Id": "number",
+                            "Name": "string",
+                            "Description": "string | null",
+                            "IdHardwareType": "number | null",
+                            "HardwareTypeName": "string | null",
+                            "IdStockCar": "number | null",
+                            "StockCarName": "string | null",
+                            "IdWorkList": "number | null",
+                            "WorkListName": "string | null"
+                        }
+                    }
+                },
+                "update": {
+                    "method": "PUT",
+                    "url": "\/stock\/items\/update.php?id={itemId}",
+                    "description": "Met Ã  jour un item existant",
+                    "parameters": {
+                        "id": "number (required)"
+                    },
+                    "body": {
+                        "Name": "string (optional)",
+                        "Description": "string (optional)",
+                        "IdHardwareType": "number (optional)",
+                        "IdWorkList": "number (optional)"
+                    },
+                    "response": {
+                        "Status": "number (200, 400, 404, 500)",
+                        "Message": "string",
+                        "JsonResult": {
+                            "Id": "number",
+                            "Name": "string",
+                            "Description": "string | null",
+                            "IdHardwareType": "number | null",
+                            "HardwareTypeName": "string | null",
+                            "IdStockCar": "number | null",
+                            "StockCarName": "string | null",
+                            "IdWorkList": "number | null",
+                            "WorkListName": "string | null"
+                        }
+                    }
+                },
+                "delete": {
+                    "method": "DELETE",
+                    "url": "\/stock\/items\/delete.php?id={itemId}",
+                    "description": "Supprime un item",
+                    "parameters": {
+                        "id": "number (required)"
+                    },
+                    "response": {
+                        "Status": "number (200, 400, 404, 500)",
+                        "Message": "string"
+                    }
+                }
+            },
+            "hardwaretype": {
+                "list": {
+                    "method": "GET",
+                    "url": "\/hardwaretype\/list.php",
+                    "description": "Liste tous les types de matÃ©riel",
+                    "response": {
+                        "Status": "number (200, 500)",
+                        "JsonResult": {
+                            "Id": "number",
+                            "Name": "string",
+                            "Description": "string | null",
+                            "ItemCount": "number"
+                        }
+                    }
+                },
+                "get": {
+                    "method": "GET",
+                    "url": "\/hardwaretype\/get.php?id={hardwareTypeId}",
+                    "description": "RÃ©cupÃ¨re un type de matÃ©riel spÃ©cifique",
+                    "parameters": {
+                        "id": "number (required)"
+                    },
+                    "response": {
+                        "Status": "number (200, 400, 404)",
+                        "JsonResult": {
+                            "Id": "number",
+                            "Name": "string",
+                            "Description": "string | null",
+                            "ItemCount": "number"
+                        }
+                    }
+                },
+                "create": {
+                    "method": "POST",
+                    "url": "\/hardwaretype\/create.php",
+                    "description": "CrÃ©e un nouveau type de matÃ©riel",
+                    "body": {
+                        "Name": "string (required)",
+                        "Description": "string (optional)"
+                    },
+                    "response": {
+                        "Status": "number (200, 400, 500)",
+                        "Message": "string",
+                        "JsonResult": {
+                            "Id": "number",
+                            "Name": "string",
+                            "Description": "string | null",
+                            "ItemCount": "number"
+                        }
+                    }
+                },
+                "update": {
+                    "method": "PUT",
+                    "url": "\/hardwaretype\/update.php?id={hardwareTypeId}",
+                    "description": "Met Ã  jour un type de matÃ©riel existant",
+                    "parameters": {
+                        "id": "number (required)"
+                    },
+                    "body": {
+                        "Name": "string (optional)",
+                        "Description": "string (optional)"
+                    },
+                    "response": {
+                        "Status": "number (200, 400, 404, 500)",
+                        "Message": "string",
+                        "JsonResult": {
+                            "Id": "number",
+                            "Name": "string",
+                            "Description": "string | null",
+                            "ItemCount": "number"
+                        }
+                    }
+                },
+                "delete": {
+                    "method": "DELETE",
+                    "url": "\/hardwaretype\/delete.php?id={hardwareTypeId}",
+                    "description": "Supprime un type de matÃ©riel",
+                    "parameters": {
+                        "id": "number (required)"
+                    },
+                    "response": {
+                        "Status": "number (200, 400, 404, 500)",
+                        "Message": "string"
+                    }
+                }
+            },
+            "stockcar": {
+                "list": {
+                    "method": "GET",
+                    "url": "\/stockcar\/list.php",
+                    "description": "Liste tous les stockcars",
+                    "response": {
+                        "Status": "number (200, 500)",
+                        "JsonResult": {
+                            "Id": "number",
+                            "Name": "string",
+                            "Description": "string | null",
+                            "ItemCount": "number"
+                        }
+                    }
+                },
+                "get": {
+                    "method": "GET",
+                    "url": "\/stockcar\/get.php?id={stockCarId}",
+                    "description": "RÃ©cupÃ¨re un stockcar spÃ©cifique",
+                    "parameters": {
+                        "id": "number (required)"
+                    },
+                    "response": {
+                        "Status": "number (200, 400, 404)",
+                        "JsonResult": {
+                            "Id": "number",
+                            "Name": "string",
+                            "Description": "string | null",
+                            "ItemCount": "number"
+                        }
+                    }
+                },
+                "create": {
+                    "method": "POST",
+                    "url": "\/stockcar\/create.php",
+                    "description": "CrÃ©e un nouveau stockcar",
+                    "body": {
+                        "Name": "string (required)",
+                        "Description": "string (optional)"
+                    },
+                    "response": {
+                        "Status": "number (200, 400, 500)",
+                        "Message": "string",
+                        "JsonResult": {
+                            "Id": "number",
+                            "Name": "string",
+                            "Description": "string | null",
+                            "ItemCount": "number"
+                        }
+                    }
+                },
+                "update": {
+                    "method": "PUT",
+                    "url": "\/stockcar\/update.php?id={stockCarId}",
+                    "description": "Met Ã  jour un stockcar existant",
+                    "parameters": {
+                        "id": "number (required)"
+                    },
+                    "body": {
+                        "Name": "string (optional)",
+                        "Description": "string (optional)"
+                    },
+                    "response": {
+                        "Status": "number (200, 400, 404, 500)",
+                        "Message": "string",
+                        "JsonResult": {
+                            "Id": "number",
+                            "Name": "string",
+                            "Description": "string | null",
+                            "ItemCount": "number"
+                        }
+                    }
+                },
+                "delete": {
+                    "method": "DELETE",
+                    "url": "\/stockcar\/delete.php?id={stockCarId}",
+                    "description": "Supprime un stockcar",
+                    "parameters": {
+                        "id": "number (required)"
+                    },
+                    "response": {
+                        "Status": "number (200, 400, 404, 500)",
+                        "Message": "string"
+                    }
+                }
+            },
+            "car": {
+                "list": {
+                    "method": "POST",
+                    "url": "\/car\/list.php",
+                    "description": "RÃ©cupÃ¨re la liste de tous les vÃ©hicules. NÃ©cessite une clÃ© API.",
+                    "body": {
+                        "ApiKey": "string (obligatoire)"
+                    },
+                    "response": {
+                        "Status": "number (200, 401, 500)",
+                        "Message": "string",
+                        "JsonResult": [
+                            {
+                                "Id": "number",
+                                "Marque": "string",
+                                "Modele": "string",
+                                "Km": "number",
+                                "Immatriculation": "string",
+                                "IdUserOwner": "number"
+                            }
+                        ]
+                    }
+                },
+                "get": {
+                    "method": "POST",
+                    "url": "\/car\/get.php",
+                    "description": "RÃ©cupÃ¨re un vÃ©hicule spÃ©cifique par son ID. NÃ©cessite une clÃ© API.",
+                    "body": {
+                        "ApiKey": "string (obligatoire)",
+                        "Id": "number (obligatoire)"
+                    },
+                    "response": {
+                        "Status": "number (200, 400, 401, 404, 500)",
+                        "Message": "string",
+                        "JsonResult": {
+                            "Id": "number",
+                            "Marque": "string",
+                            "Modele": "string",
+                            "Km": "number",
+                            "Immatriculation": "string",
+                            "IdUserOwner": "number"
+                        }
+                    }
+                },
+                "create": {
+                    "method": "POST",
+                    "url": "\/car\/create.php",
+                    "description": "CrÃ©e un nouveau vÃ©hicule. NÃ©cessite une clÃ© API.",
+                    "body": {
+                        "ApiKey": "string (obligatoire)",
+                        "Marque": "string (obligatoire)",
+                        "Modele": "string (obligatoire)",
+                        "Km": "number (obligatoire)",
+                        "Immatriculation": "string (obligatoire)",
+                        "IdUserOwner": "number (obligatoire)"
+                    },
+                    "response": {
+                        "Status": "number (201, 400, 401, 500)",
+                        "Message": "string",
+                        "JsonResult": {
+                            "Id": "number",
+                            "Marque": "string",
+                            "Modele": "string",
+                            "Km": "number",
+                            "Immatriculation": "string",
+                            "IdUserOwner": "number"
+                        }
+                    }
+                },
+                "update": {
+                    "method": "POST",
+                    "url": "\/car\/update.php",
+                    "description": "Met Ã  jour un vÃ©hicule existant. NÃ©cessite une clÃ© API.",
+                    "body": {
+                        "ApiKey": "string (obligatoire)",
+                        "Id": "number (obligatoire)",
+                        "Marque": "string (optionnel)",
+                        "Modele": "string (optionnel)",
+                        "Km": "number (optionnel)",
+                        "Immatriculation": "string (optionnel)",
+                        "IdUserOwner": "number (optionnel)"
+                    },
+                    "response": {
+                        "Status": "number (200, 400, 401, 404, 500)",
+                        "Message": "string",
+                        "JsonResult": {
+                            "Id": "number",
+                            "Marque": "string",
+                            "Modele": "string",
+                            "Km": "number",
+                            "Immatriculation": "string",
+                            "IdUserOwner": "number"
+                        }
+                    }
+                },
+                "delete": {
+                    "method": "POST",
+                    "url": "\/car\/delete.php",
+                    "description": "Supprime un vÃ©hicule. NÃ©cessite une clÃ© API.",
+                    "body": {
+                        "ApiKey": "string (obligatoire)",
+                        "Id": "number (obligatoire)"
+                    },
+                    "response": {
+                        "Status": "number (200, 400, 401, 404, 500)",
+                        "Message": "string"
+                    }
+                }
+            }
+        },
+        "status_codes": {
+            "200": "SuccÃ¨s",
+            "201": "CrÃ©Ã© avec succÃ¨s",
+            "400": "DonnÃ©es invalides ou manquantes",
+            "401": "Non autorisÃ© (clÃ© API invalide)",
+            "404": "Ressource non trouvÃ©e",
+            "405": "MÃ©thode non autorisÃ©e",
+            "500": "Erreur serveur"
+        },
+        "notes": [
+            "Toutes les rÃ©ponses sont au format JSON",
+            "Les champs marquÃ©s avec (obligatoire) sont requis",
+            "Les champs marquÃ©s avec (optionnel) sont facultatifs",
+            "La clÃ© ApiKey est unique et dÃ©finitive pour chaque utilisateur",
+            "Toutes les routes car utilisent la mÃ©thode POST avec ApiKey",
+            "Les IDs sont toujours des nombres",
+            "Les mots de passe sont hashÃ©s cÃ´tÃ© serveur"
+        ]
+    }
+}{"Route":"WikiAlarm.help","Status":"200","JsonRequest":null,"JsonResult":"","Message":"","ErrorMessage":""}

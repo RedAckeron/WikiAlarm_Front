@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
-import { AuthService } from 'src/app/Services/auth.service';
-import { UserService } from 'src/app/Services/user.service';
+import { AuthService } from 'src/app/services/auth.service';
+import { UserService } from 'src/app/services/user.service';
 
 @Component({
   selector: 'app-footer',
@@ -11,6 +11,7 @@ import { UserService } from 'src/app/Services/user.service';
 export class FooterComponent implements OnInit {
   private _isConnected! : Boolean;
   userEmail: string = '';
+  userRole: string = '';
 
   get isConnected()
   {
@@ -35,12 +36,13 @@ export class FooterComponent implements OnInit {
     this._authService.IsConnected.subscribe({
       next: (value : Boolean) => 
       {
-        this._isConnected=value
+        this._isConnected = value;
         if (value) {
-          const user = this._authService.userValue;
-          if (user) {
-            this.userEmail = user.email;
-          }
+          this.userEmail = sessionStorage.getItem('Email') || '';
+          this.userRole = sessionStorage.getItem('userRole') || '';
+        } else {
+          this.userEmail = '';
+          this.userRole = '';
         }
       }});
 

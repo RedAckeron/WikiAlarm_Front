@@ -3,7 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { UserFormLogin } from 'src/app/models/Forms/UsersFormLogin';
-import { AuthService } from 'src/app/Services/auth.service';
+import { AuthService } from 'src/app/services/auth.service';
 
 @Component({
   selector: 'app-home',
@@ -28,20 +28,11 @@ export class HomeComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.initForm();
-    
     this._authService.IsConnected.subscribe({
-      next: (value) => {
-        console.log("connected ? : " + value);
+      next: (value: Boolean) => {
         this._isConnected = value;
-        if (value) {
-          this.router.navigate(['/profil']);
-        }
       }
     });
-  }
-
-  private initForm(): void {
     this.loginForm = this.formBuilder.group({
       Email: ['', [Validators.required, Validators.email]],
       Password: ['', [Validators.required, Validators.minLength(6)]]
@@ -52,15 +43,22 @@ export class HomeComponent implements OnInit {
     if (this.loginForm.valid) {
       this.loading = true;
       const userForm: UserFormLogin = this.loginForm.value;
-      
       this._authService.login(userForm).subscribe({
         next: (response) => {
           this.loading = false;
-          this.messageService.add({
-            severity: 'success',
-            summary: 'Succès',
-            detail: 'Connexion réussie'
-          });
+          if (response && response.Id && response.Id != 0) {
+            this.messageService.add({
+              severity: 'success',
+              summary: 'Succès',
+              detail: 'Connexion réussie'
+            });
+          } else {
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Erreur',
+              detail: 'Login ou mot de passe incorrect !'
+            });
+          }
         },
         error: (error) => {
           this.loading = false;
@@ -79,5 +77,9 @@ export class HomeComponent implements OnInit {
         detail: 'Veuillez remplir correctement tous les champs'
       });
     }
+  }
+
+  goToRegister(): void {
+    this.router.navigate(['/register']);
   }
 }

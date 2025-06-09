@@ -1,6 +1,13 @@
 <div *ngIf="isConnected">
   <p-menubar [model]="items">
     <ng-template pTemplate="start">
+      <img 
+        src="assets/img/LogoBannerMini.gif" 
+        alt="WikiAlarm Logo" 
+        class="navbar-logo" 
+        (click)="goToHome()"
+        title="Retour à l'accueil"
+      />
     </ng-template>
   </p-menubar>
 </div>

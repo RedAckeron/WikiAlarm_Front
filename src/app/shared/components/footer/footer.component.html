@@ -1,8 +1,13 @@
 <div class="footerbox">
     <div class="footerboxname">
-        <div class="connected" *ngIf="isConnected"></div>
-        <div class="disconnected" *ngIf="!isConnected"></div>
-        User connected
+        <span [ngClass]="isConnected ? 'connected' : 'disconnected'"></span>
+        <span class="footer-user-text">
+            <ng-container *ngIf="isConnected; else disconnectedText">
+                {{ userEmail }}
+                <span class="user-role" *ngIf="userRole">({{ userRole }})</span>
+            </ng-container>
+            <ng-template #disconnectedText>User disconnected</ng-template>
+        </span>
     </div>
    
     <div class="footerboxanno">Created by RedLife - KeyProd 2023</div>

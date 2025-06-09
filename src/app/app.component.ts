@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { AuthService } from './Services/auth.service';
-import { TokenService } from './Services/Token.service';
+import { AuthService } from './services/auth.service';
+import { TokenService } from './services/token.service';
 import { BehaviorSubject } from 'rxjs';
 import { Router } from '@angular/router';
 

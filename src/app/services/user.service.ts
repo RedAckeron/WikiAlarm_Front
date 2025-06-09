@@ -1,6 +1,6 @@
-import {  HttpClient } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, catchError, throwError } from 'rxjs';
 import { environment } from '../environements/environement';
 import { User } from '../models/User';
 
@@ -8,33 +8,102 @@ import { User } from '../models/User';
   providedIn: 'root'
 })
 export class UserService {
-  private _CurrentCustomerSubject : BehaviorSubject<number> = new BehaviorSubject<number>(0);
+  private _CurrentCustomerSubject: BehaviorSubject<number> = new BehaviorSubject<number>(0);
 
-  get CurrentCustomer() : BehaviorSubject<number>
-  {
+  get CurrentCustomer(): BehaviorSubject<number> {
     return this._CurrentCustomerSubject;
   }
 
+  constructor(private _httpClient: HttpClient) { }
 
-  constructor(private _httpClient:HttpClient) { }
+  SetCurrentCustomer(CurrentCustomer: number): void {
+    sessionStorage.setItem("CurrentCustomer", CurrentCustomer.toString())
+    this._CurrentCustomerSubject.next(CurrentCustomer);
+  }
 
-SetCurrentCustomer(CurrentCustomer:number):void
-  {
+  GetCurrentCustomer(): number {
+    let value = sessionStorage.getItem("CurrentCustomer");
+    return parseInt(value ?? "");
+  }
+
+  // Récupérer un utilisateur par son ID avec la bonne URL et POST + JSON
+  GetById(id: number): Observable<any> {
+    const ApiKey = sessionStorage.getItem('apiKey') || '';
+    return this._httpClient.post<any>(`${environment.apiUrl}/WikiAlarm/?route=user/get`, { ApiKey, id });
+  }
+
+  // Mettre à jour un utilisateur selon l'API WikiAlarm
+  Update(id: number, userData: any): Observable<any> {
+    const body = {
+      ApiKey: this.getApiKey(),
+      id: id,
+      ...userData
+    };
+    return this._httpClient.post<any>(`http://ackeron.be/.api/WikiAlarm/?route=user/update`, body);
+  }
+
+  // Désactiver un utilisateur
+  Deactivate(id: number): Observable<any> {
+    const ApiKey = sessionStorage.getItem('apiKey') || '';
+    return this._httpClient.post<any>(`${environment.apiUrl}/WikiAlarm/?route=user/deactivate`, { ApiKey, id });
+  }
+
+  // Récupérer la liste des utilisateurs
+  GetAll(): Observable<any> {
+    const body = {
+      ApiKey: this.getApiKey()
+    };
+    return this._httpClient.post<any>(`${environment.apiUrl}/WikiAlarm/?route=user/list`, body);
+  }
+
+  // Vérifie (et crée si besoin) un utilisateur WikiAlarm
+  checkOrCreateUser(userId: number, email?: string, name?: string): Observable<any> {
+    return this._httpClient.post<any>(
+      `${environment.apiUrl}/WikiAlarm/?route=user/get`,
+      { id: userId, email, name }
+    );
+  }
+
+  private getApiKey(): string {
+    return sessionStorage.getItem('apiKey') || '';
+  }
+
+  getUsers(): Observable<any> {
+    const body = {
+      ApiKey: this.getApiKey()
+    };
     
-  sessionStorage.setItem("CurrentCustomer",CurrentCustomer.toString())
-  this._CurrentCustomerSubject.next(CurrentCustomer);
+    return this._httpClient.post<any>('http://ackeron.be/.api/WikiAlarm/?route=user/list', body);
   }
 
-GetCurrentCustomer():number
-  {
-  let value=sessionStorage.getItem("CurrentCustomer");
-  return parseInt(value??"");
+  // Méthodes basiques pour ne pas casser l'interface
+  createUser(userData: any): Observable<any> {
+    const body = {
+      ApiKey: this.getApiKey(),
+      ...userData
+    };
+    return this._httpClient.post<any>('http://ackeron.be/.api/WikiAlarm/?route=user/create', body);
   }
 
-//get by id
-GetById(id:number):Observable<User>
-  {
-  let user=this._httpClient.get<User>(`${environment.apiUrl}/user/Read/${id}`)
-  return user;
+  updateUser(userId: number, userData: any): Observable<any> {
+    const body = {
+      ApiKey: this.getApiKey(),
+      id: userId,
+      ...userData
+    };
+    
+    return this._httpClient.post<any>(`http://ackeron.be/.api/WikiAlarm/?route=user/update`, body).pipe(
+      catchError(error => {
+        return throwError(() => error);
+      })
+    );
+  }
+
+  deleteUser(userId: number): Observable<any> {
+    const body = {
+      ApiKey: this.getApiKey(),
+      id: userId
+    };
+    return this._httpClient.post<any>(`http://ackeron.be/.api/WikiAlarm/?route=user/delete`, body);
   }
 }

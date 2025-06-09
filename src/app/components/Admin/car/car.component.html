@@ -1,0 +1,196 @@
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5>Gestion des Véhicules</h5>
+        <p-button 
+            label="Ajouter" 
+            icon="pi pi-plus" 
+            (onClick)="showAddCarDialog()"
+            styleClass="p-button-success">
+        </p-button>
+    </div>
+    
+    <p-table [value]="cars">
+        <ng-template pTemplate="header">
+            <tr>
+                <th>Marque</th>
+                <th>Modèle</th>
+                <th>Kilométrage</th>
+                <th>Plaque</th>
+                <th>Propriétaire</th>
+                <th>Actions</th>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-car>
+            <tr>
+                <td>{{ car.Marque }}</td>
+                <td>{{ car.Modele }}</td>
+                <td>{{ car.Km }}</td>
+                <td>{{ car.Immatriculation }}</td>
+                <td>{{ getOwnerName(car.IdUserOwner) || 'Non assigné' }}</td>
+                <td>
+                    <p-button 
+                        icon="pi pi-user" 
+                        (onClick)="showAssignCarDialog(car)"
+                        styleClass="p-button-text p-button-info p-mr-2"
+                        pTooltip="Attribuer">
+                    </p-button>
+                    <p-button 
+                        icon="pi pi-pencil" 
+                        (onClick)="editCar(car)"
+                        styleClass="p-button-text p-button-warning p-mr-2"
+                        pTooltip="Modifier">
+                    </p-button>
+                    <p-button 
+                        icon="pi pi-trash" 
+                        (onClick)="deleteCar(car)"
+                        styleClass="p-button-text p-button-danger"
+                        pTooltip="Supprimer">
+                    </p-button>
+                </td>
+            </tr>
+        </ng-template>
+    </p-table>
+</div>
+
+<!-- Dialog pour ajouter/modifier un véhicule -->
+<p-dialog 
+    header="{{isEditMode ? 'Modifier' : 'Ajouter'}} un Véhicule" 
+    [(visible)]="showDialog" 
+    [modal]="true" 
+    [style]="{width: '50vw'}"
+    [closable]="true">
+    
+    <form [formGroup]="carForm" (ngSubmit)="saveCar()">
+        <div class="p-fluid">
+            <div class="p-field">
+                <label for="marque">Marque *</label>
+                <input 
+                    pInputText 
+                    id="marque" 
+                    formControlName="marque" 
+                    placeholder="Ex: Peugeot">
+            </div>
+            
+            <!-- Afficher le champ propriétaire uniquement en mode édition -->
+            <div class="p-field" *ngIf="isEditMode">
+                <label for="proprietaire">Propriétaire</label>
+                <p-dropdown 
+                    id="proprietaire"
+                    formControlName="proprietaire"
+                    [options]="users"
+                    optionLabel="name"
+                    optionValue="id"
+                    placeholder="Sélectionner un utilisateur"
+                    [showClear]="true">
+                    <ng-template let-user pTemplate="item">
+                        <div class="p-dropdown-item-content">
+                            <div>{{ user.name }}</div>
+                            <small *ngIf="user.email" class="text-muted">{{ user.email }}</small>
+                        </div>
+                    </ng-template>
+                    <ng-template let-user pTemplate="selectedItem">
+                        <div *ngIf="user">{{ user.name }}</div>
+                    </ng-template>
+                </p-dropdown>
+            </div>
+            
+            <div class="p-field">
+                <label for="modele">Modèle *</label>
+                <input 
+                    pInputText 
+                    id="modele" 
+                    formControlName="modele" 
+                    placeholder="Ex: 308">
+            </div>
+            
+            <div class="p-field">
+                <label for="km">Kilométrage</label>
+                <input 
+                    pInputText 
+                    id="km" 
+                    formControlName="km" 
+                    type="number" 
+                    placeholder="Ex: 50000">
+            </div>
+            
+            <div class="p-field">
+                <label for="imatriculation">Plaque d'immatriculation *</label>
+                <input 
+                    pInputText 
+                    id="imatriculation" 
+                    formControlName="imatriculation" 
+                    placeholder="Ex: ABC-123">
+            </div>
+        </div>
+        
+        <div class="p-dialog-footer">
+            <p-button 
+                label="Annuler" 
+                icon="pi pi-times" 
+                (onClick)="hideDialog()"
+                styleClass="p-button-text">
+            </p-button>
+            <p-button 
+                label="{{isEditMode ? 'Modifier' : 'Ajouter'}}" 
+                icon="pi pi-check" 
+                type="submit"
+                [disabled]="carForm.invalid">
+            </p-button>
+        </div>
+    </form>
+</p-dialog>
+
+<!-- Dialog pour attribuer un véhicule -->
+<p-dialog 
+    header="Attribuer le véhicule" 
+    [(visible)]="showAssignDialog" 
+    [modal]="true" 
+    [style]="{width: '40vw'}"
+    [closable]="true">
+    
+    <div class="p-fluid" *ngIf="selectedCarForAssign">
+        <div class="p-field">
+            <label>Véhicule</label>
+            <input 
+                pInputText 
+                [value]="selectedCarForAssign.Marque + ' ' + selectedCarForAssign.Modele + ' (' + selectedCarForAssign.Immatriculation + ')'"
+                disabled>
+        </div>
+        
+        <div class="p-field">
+            <label for="newOwner">Nouveau propriétaire</label>
+            <p-dropdown 
+                id="newOwner"
+                [(ngModel)]="newOwnerId"
+                [options]="users"
+                optionLabel="name"
+                optionValue="id"
+                placeholder="Sélectionner un utilisateur"
+                [showClear]="true">
+                <ng-template let-user pTemplate="item">
+                    <div class="p-dropdown-item-content">
+                        <div>{{ user.name }}</div>
+                        <small *ngIf="user.email" class="text-muted">{{ user.email }}</small>
+                    </div>
+                </ng-template>
+                <ng-template let-user pTemplate="selectedItem">
+                    <div *ngIf="user">{{ user.name }}</div>
+                </ng-template>
+            </p-dropdown>
+        </div>
+    </div>
+    
+    <div class="p-dialog-footer">
+        <p-button 
+            label="Annuler" 
+            icon="pi pi-times" 
+            (onClick)="hideAssignDialog()"
+            styleClass="p-button-text">
+        </p-button>
+        <p-button 
+            label="Attribuer" 
+            icon="pi pi-check" 
+            (onClick)="assignCar()">
+        </p-button>
+    </div>
+</p-dialog>

@@ -1,11 +1,11 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable, OnInit } from '@angular/core';
-import { BehaviorSubject, Observable, map } from 'rxjs';
+import { BehaviorSubject, Observable, map, catchError, throwError } from 'rxjs';
 import { environment } from '../environements/environement';
 import { User } from '../models/User';
 import { UserFormLogin } from '../models/Forms/UsersFormLogin';
-import { TokenService } from './Token.service';
-environment
+import { TokenService } from './token.service';
+
 @Injectable({
   providedIn: 'root'
 })
@@ -52,35 +52,104 @@ export class AuthService {
 
   login(userform:UserFormLogin):Observable<User>
     {
-    return this._httpClient.post<any>(`${environment.apiUrl }/portal/?route=login`,{email:userform.Email,password:userform.Password})
+    return this._httpClient.post<any>(`${environment.apiUrl}/WikiAlarm/?route=user/login`,{
+      email: userform.Email,
+      password: userform.Password
+    })
     .pipe(map(user=>
         {
-          if(user.JsonResult.id!=0)
+          if(user.JsonResult && user.JsonResult.Id)
           {
-            //this._UserSubject.next(user.token);
+            this._tokenService.saveToken(user.JsonResult.Id.toString());
+            sessionStorage.setItem('Email', user.JsonResult.Email || '');
+            sessionStorage.setItem('FirstName', user.JsonResult.Name || '');
+            sessionStorage.setItem('apiKey', user.JsonResult.ApiKey || '');
+            sessionStorage.setItem('userRole', user.JsonResult.Role || '');
+            
+            // Détecter si l'utilisateur utilise le mot de passe par défaut
+            if (userform.Password === 'WikiAlarm') {
+              sessionStorage.setItem('hasDefaultPassword', 'true');
+            } else {
+              sessionStorage.removeItem('hasDefaultPassword');
+            }
+            
+            this.IsConnected.next(true);
+          }
+          return user.JsonResult;
+        }),
+        catchError(error => {
+          return throwError(error);
+        }))
+    }
+
+  register(_registerForm:UserFormLogin):Observable<User>
+    {
+    const email = _registerForm.Email || '';
+    const name = email.split('@')[0] || 'Utilisateur';
+
+    return this._httpClient.post<any>(`${environment.apiUrl}/WikiAlarm/?route=user/create`,{
+      email: email,
+      password: _registerForm.Password,
+      name: name
+    })
+    .pipe(map(user=>
+        {
+          if(user.JsonResult && user.JsonResult.id)
+          {
+            this._tokenService.saveToken(user.JsonResult.id.toString());
+            sessionStorage.setItem('Email', user.JsonResult.Email || '');
+            sessionStorage.setItem('FirstName', user.JsonResult.Name || '');
+            sessionStorage.setItem('apiKey', user.JsonResult.ApiKey || '');
             this.IsConnected.next(true);
           }
           return user.JsonResult;
         }))
     }
 
-  register(_registerForm:UserFormLogin):Observable<User>
-    {
-    return this._httpClient.post<any>(`${environment.apiUrl }/portal/?route=register`,{email:_registerForm.Email,password:_registerForm.Password})
-        .pipe(map(user=>
-            {
-              if(user.JsonResult.id!=0)
-              {
-                //this._UserSubject.next(user.token);
-                this.IsConnected.next(true);
-              }
-              return user.JsonResult;
-            }))
-    }
-
   logout()
     {
     sessionStorage.removeItem("IdUser");
+    sessionStorage.removeItem("Email");
+    sessionStorage.removeItem("FirstName");
+    sessionStorage.removeItem("apiKey");
+    sessionStorage.removeItem("userRole");
+    sessionStorage.removeItem("hasDefaultPassword");
     this.IsConnected.next(false);
     }
+
+  GetById(id: number): Observable<any> {
+    return this._httpClient.post<any>(`${environment.apiUrl}/user/get.php`, { id: id });
+  }
+
+  // Gestion des rôles
+  getCurrentUserRole(): string {
+    return sessionStorage.getItem('userRole') || '';
+  }
+
+  isAdmin(): boolean {
+    const role = this.getCurrentUserRole().toLowerCase();
+    return role === 'admin' || role === 'administrator' || role === 'administrateur';
+  }
+
+  isUser(): boolean {
+    const role = this.getCurrentUserRole().toLowerCase();
+    return role === 'user' || role === 'utilisateur';
+  }
+
+  hasRole(expectedRole: string): boolean {
+    const currentRole = this.getCurrentUserRole().toLowerCase();
+    return currentRole === expectedRole.toLowerCase();
+  }
+
+  canAccessAdminPanel(): boolean {
+    return this.isAdmin();
+  }
+
+  canManageUsers(): boolean {
+    return this.isAdmin();
+  }
+
+  canManageVehicles(): boolean {
+    return this.isAdmin();
+  }
   }

@@ -1,0 +1,131 @@
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5>Gestion des Utilisateurs</h5>
+        <p-button 
+            label="Ajouter" 
+            icon="pi pi-plus" 
+            (onClick)="showAddUserDialog()"
+            styleClass="p-button-success">
+        </p-button>
+    </div>
+    
+    <p-table [value]="users" selectionMode="single" [(selection)]="selectedUser" (onRowSelect)="onUserSelected()">
+        <ng-template pTemplate="header">
+            <tr>
+                <th>ID</th>
+                <th>Nom</th>
+                <th>Email</th>
+                <th>Statut</th>
+                <th>Actions</th>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-user>
+            <tr [pSelectableRow]="user">
+                <td>{{ user.Id }}</td>
+                <td>{{ user.Name || 'Non défini' }}</td>
+                <td>{{ user.Email }}</td>
+                <td>
+                    <p-tag 
+                        [value]="getUserStatus(user)"
+                        [severity]="getUserSeverity(user)">
+                    </p-tag>
+                </td>
+                <td>
+                    <p-button 
+                        icon="pi pi-pencil" 
+                        (onClick)="editUser(user)"
+                        styleClass="p-button-text p-button-warning p-mr-2"
+                        pTooltip="Modifier">
+                    </p-button>
+                    <!-- Bouton désactiver (pour utilisateurs actifs) -->
+                    <p-button 
+                        *ngIf="getUserSeverity(user) === 'success'"
+                        icon="pi pi-ban" 
+                        (onClick)="toggleUserStatus(user)"
+                        styleClass="p-button-text p-button-danger p-mr-1"
+                        pTooltip="Désactiver">
+                    </p-button>
+                    <!-- Bouton réactiver avec icône V (pour utilisateurs inactifs) -->
+                    <p-button 
+                        *ngIf="getUserSeverity(user) === 'danger'"
+                        icon="pi pi-check" 
+                        (onClick)="toggleUserStatus(user)"
+                        styleClass="p-button-text p-button-success"
+                        pTooltip="Réactiver">
+                    </p-button>
+                </td>
+            </tr>
+        </ng-template>
+    </p-table>
+
+    <!-- Affichage des détails de l'utilisateur sélectionné -->
+    <div *ngIf="selectedUser" class="mt-4 p-3 border rounded bg-light">
+        <h5>Détails de l'utilisateur sélectionné</h5>
+        <p><strong>Nom :</strong> {{ selectedUser.Name }}</p>
+        <p><strong>Email :</strong> {{ selectedUser.Email }}</p>
+        <p><strong>Statut :</strong> <p-tag [value]="getUserStatus(selectedUser)" [severity]="getUserSeverity(selectedUser)"></p-tag></p>
+    </div>
+</div>
+
+<!-- Dialog pour ajouter/modifier un utilisateur -->
+<p-dialog 
+    header="{{isEditMode ? 'Modifier' : 'Ajouter'}} un Utilisateur" 
+    [(visible)]="showDialog" 
+    [modal]="true" 
+    [style]="{width: '50vw'}"
+    [closable]="true">
+    
+    <form [formGroup]="userForm" (ngSubmit)="saveUser()">
+        <div class="p-fluid">
+            <div class="p-field">
+                <label for="name">Nom *</label>
+                <input 
+                    pInputText 
+                    id="name" 
+                    formControlName="name" 
+                    placeholder="Ex: Jean Dupont">
+            </div>
+            
+            <div class="p-field">
+                <label for="email">Email *</label>
+                <input 
+                    pInputText 
+                    id="email" 
+                    formControlName="email" 
+                    type="email"
+                    placeholder="Ex: jean.dupont@email.com">
+            </div>
+            
+            <!-- Champ mot de passe seulement en mode édition -->
+            <div class="p-field" *ngIf="isEditMode">
+                <label for="password">Nouveau mot de passe (optionnel)</label>
+                <p-password 
+                    id="password" 
+                    formControlName="password"
+                    [toggleMask]="true"
+                    [feedback]="true"
+                    promptLabel="Nouveau mot de passe"
+                    weakLabel="Trop simple"
+                    mediumLabel="Moyen"
+                    strongLabel="Complexe"
+                    placeholder="Laissez vide pour conserver l'ancien">
+                </p-password>
+            </div>
+        </div>
+        
+        <div class="p-dialog-footer">
+            <p-button 
+                label="Annuler" 
+                icon="pi pi-times" 
+                (onClick)="hideDialog()"
+                styleClass="p-button-text">
+            </p-button>
+            <p-button 
+                label="{{isEditMode ? 'Modifier' : 'Ajouter'}}" 
+                icon="pi pi-check" 
+                type="submit"
+                [disabled]="userForm.invalid">
+            </p-button>
+        </div>
+    </form>
+</p-dialog>

@@ -1,1 +1,12 @@
-<p>cctv works!</p>
+<div class="card">
+    <div class="card-header">
+        <h4>📹 Base de connaissance - CCTV</h4>
+        <p class="text-muted">Documentation et guides pour les systèmes de vidéosurveillance</p>
+    </div>
+    
+    <p-accordion>
+        <p-accordionTab *ngFor="let tab of tabs" [header]="tab.title">
+            <p class="m-0">{{ tab.content }}</p>
+        </p-accordionTab>
+    </p-accordion>
+</div>

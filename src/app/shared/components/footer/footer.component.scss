@@ -39,6 +39,25 @@
     border: solid 1px black;
 }
 
+.footer-user-text {
+    font-size: 1rem;
+    font-weight: 500;
+    color: #222;
+    margin-left: 8px;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    min-width: 120px;
+    
+    .user-role {
+        font-size: 0.85rem;
+        font-weight: 400;
+        color: #666;
+        margin-left: 4px;
+        font-style: italic;
+    }
+}
+
 @media (max-width: 720px) 
 {
     .footerbox{

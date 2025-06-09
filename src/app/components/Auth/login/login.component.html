@@ -1,20 +1,21 @@
 <div class="ContainerLogin">
   <div>
-  <form [formGroup]="loginUser" (ngSubmit)="onSubmit()" >
-      <div>
-        <label> E-mail :</label>
-        <input type="text" formControlName="Email">
-      </div>
-    
-      <div>
-        <label> Pasword :</label>
-        <input type="password" formControlName="Password">
-      </div>
-    
-      <div>
-        <input type="submit" value="Connexion">
-      </div>
-    </form>
+    <div class="card">
+      <h2>Connexion</h2>
+      <form [formGroup]="loginUser" (ngSubmit)="onSubmit()">
+        <div class="p-field">
+          <label for="email">Email</label>
+          <input id="email" type="email" pInputText formControlName="Email" class="p-inputtext-lg" />
+        </div>
+        <div class="p-field">
+          <label for="password">Mot de passe</label>
+          <p-password id="password" formControlName="Password" [toggleMask]="true" [feedback]="false"></p-password>
+        </div>
+        <div class="p-field">
+          <p-button type="submit" label="Se connecter" styleClass="p-button-primary"></p-button>
+        </div>
+      </form>
+    </div>
   </div>
 </div>
-<p-toast></p-toast>
+<p-toast position="bottom-right"></p-toast>
