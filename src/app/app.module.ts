@@ -44,7 +44,8 @@ import { StockUserComponent } from './components/Admin/stock-user/stock-user.com
 import { StockCarComponent } from './components/Admin/stock-car/stock-car.component';
 import { ItemModule } from './components/Admin/item/item.module';
 import { TypeMaterielModule } from './components/Admin/item/type-materiel.module';
-import { VehiculeStockModule } from './components/profil/vehicule/stock/vehicule-stock.module';
+import { VehiculeModule } from './components/profil/vehicule/vehicule.module';
+import { CalendrierComponent } from './components/calendrier/calendrier.component';
 
 @NgModule({
   schemas:[CUSTOM_ELEMENTS_SCHEMA],
@@ -55,15 +56,12 @@ import { VehiculeStockModule } from './components/profil/vehicule/stock/vehicule
     LoginComponent,
     TestComponent,
     ProfilComponent,
-    IncendieComponent,
-    CtrlaccesComponent,
-    CctvComponent,
     StockComponent,
     LobbyComponent,
-    VehiculeComponent,
     ItemComponent,
     StockUserComponent,
-    StockCarComponent
+    StockCarComponent,
+    CalendrierComponent
   ],
   imports: [
     BrowserModule,
@@ -95,7 +93,11 @@ import { VehiculeStockModule } from './components/profil/vehicule/stock/vehicule
     UserModule,
     ItemModule,
     TypeMaterielModule,
-    VehiculeStockModule
+    VehiculeModule,
+    IntrusionComponent,
+    IncendieComponent,
+    CtrlaccesComponent,
+    CctvComponent
   ],
   providers: [MessageService, ConfirmationService],
   bootstrap: [AppComponent]

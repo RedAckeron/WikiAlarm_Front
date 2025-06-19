@@ -1,10 +1,11 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from 'src/environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class CarService {
-  private apiUrl = 'http://ackeron.be/.api/WikiAlarm/?route=car/list';
+  private apiUrl = environment.apiUrl + '?route=car/list';
 
   constructor(private http: HttpClient) {}
 
@@ -26,7 +27,7 @@ export class CarService {
       id: id
     };
     
-    return this.http.post<any>(`http://ackeron.be/.api/WikiAlarm/?route=car/get`, body);
+    return this.http.post<any>(environment.apiUrl + '?route=car/get', body);
   }
 
   assignCarToUser(carId: string, userId: string): Observable<any> {
@@ -36,7 +37,7 @@ export class CarService {
       userId: userId
     };
     
-    return this.http.post<any>('http://ackeron.be/.api/WikiAlarm/?route=car/assign', body);
+    return this.http.post<any>(environment.apiUrl + '?route=car/assign', body);
   }
 
   updateCar(car: any): Observable<any> {
@@ -45,7 +46,7 @@ export class CarService {
       ...car
     };
     
-    return this.http.post<any>('http://ackeron.be/.api/WikiAlarm/?route=car/update', body);
+    return this.http.post<any>(environment.apiUrl + '?route=car/update', body);
   }
 
   addCar(car: any): Observable<any> {
@@ -54,7 +55,7 @@ export class CarService {
       ...car
     };
     
-    return this.http.post<any>('http://ackeron.be/.api/WikiAlarm/?route=car/create', body);
+    return this.http.post<any>(environment.apiUrl + '?route=car/create', body);
   }
 
   getCarsByUser(userId: string): Observable<any> {
@@ -62,6 +63,6 @@ export class CarService {
       ApiKey: this.getApiKey(),
       IdUserOwner: userId
     };
-    return this.http.post<any>('http://ackeron.be/.api/WikiAlarm/?route=car/ListByUser', body);
+    return this.http.post<any>(environment.apiUrl + '?route=car/ListByUser', body);
   }
 } 

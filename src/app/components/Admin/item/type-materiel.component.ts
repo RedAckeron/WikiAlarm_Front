@@ -12,9 +12,9 @@ import { Router } from '@angular/router';
           <i class="pi pi-cog text-primary"></i>
           Gestion des types de matériel
         </h5>
-        <p-button label="Ajouter un type de matériel" icon="pi pi-plus" styleClass="p-button-primary" (onClick)="goToAdd()"></p-button>
       </div>
       <div class="card-body">
+        <app-type-materiel-add (add)="addType($event)"></app-type-materiel-add>
         <h6 class="mb-3">Liste des types de matériel</h6>
         <p-table [value]="hardwareTypes" [paginator]="true" [rows]="10" styleClass="p-datatable-striped">
           <ng-template pTemplate="header">
@@ -54,7 +54,15 @@ export class TypeMaterielComponent implements OnInit {
     });
   }
 
-  goToAdd() {
-    this.router.navigate(['/Admin/type-materiel/add']);
+  addType(event: { name: string; description?: string }) {
+    this.hardwareTypeService.createHardwareType(event.name, event.description).subscribe({
+      next: (res) => {
+        this.messageService.add({ severity: 'success', summary: 'Succès', detail: res.Message || 'Type de matériel ajouté' });
+        this.loadTypes();
+      },
+      error: (err) => {
+        this.messageService.add({ severity: 'error', summary: 'Erreur', detail: err.error?.ErrorMessage || 'Erreur lors de l\'ajout du type de matériel' });
+      }
+    });
   }
 } 

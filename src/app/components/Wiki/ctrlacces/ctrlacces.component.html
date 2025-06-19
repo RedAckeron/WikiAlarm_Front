@@ -1,12 +1,24 @@
-<div class="card">
-    <div class="card-header">
-        <h4>🔐 Base de connaissance - Contrôle d'accès</h4>
-        <p class="text-muted">Documentation et guides pour les systèmes de contrôle d'accès</p>
+<div class="wiki-container">
+    <div class="wiki-header">
+        <h2>🔐 Base de connaissance - Contrôle d'accès</h2>
+        <p>Documentation et guides pour les systèmes de contrôle d'accès</p>
     </div>
     
-    <p-accordion>
-        <p-accordionTab *ngFor="let tab of tabs" [header]="tab.title">
-            <p class="m-0">{{ tab.content }}</p>
-        </p-accordionTab>
-    </p-accordion>
+    <div class="wiki-grid">
+        <div class="wiki-card" *ngFor="let tab of tabs">
+            <div class="card-header">
+                <i [class]="tab.icon"></i>
+                <h3>{{ tab.title }}</h3>
+            </div>
+            <div class="card-description">
+                <p>{{ tab.description }}</p>
+            </div>
+            <div class="card-content">
+                <p>{{ tab.content }}</p>
+            </div>
+            <div class="card-actions">
+                <button pButton type="button" label="En savoir plus" class="p-button-outlined"></button>
+            </div>
+        </div>
+    </div>
 </div>

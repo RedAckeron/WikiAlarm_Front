@@ -20,6 +20,8 @@ import { ItemAddComponent } from './components/Admin/item/item-add.component';
 import { TypeMaterielComponent } from './components/Admin/item/type-materiel.component';
 import { TypeMaterielAddComponent } from './components/Admin/item/type-materiel-add.component';
 import { VehiculeStockComponent } from './components/profil/vehicule/stock/vehicule-stock.component';
+import { CalendrierComponent } from './components/calendrier/calendrier.component';
+import { CalendrierComponent as AdminCalendrierComponent } from './components/Admin/calendrier/calendrier.component';
 
 const routes: Routes = [
   {path : '',component : HomeComponent},
@@ -29,6 +31,7 @@ const routes: Routes = [
   {path : 'profil/vehicule/stock/:id', component : VehiculeStockComponent, canActivate: [AuthGuard]},
   {path : 'stock',component : StockComponent, canActivate: [AuthGuard]},
   {path : 'register', component: RegisterComponent},
+  {path : 'calendrier', component: CalendrierComponent, canActivate: [AuthGuard]},
   {
     path : 'Wiki',children:
     [
@@ -49,7 +52,8 @@ const routes: Routes = [
       {path : 'stock-vehicule', component : StockCarComponent, canActivate: [AuthGuard]},
       {path : 'stock-utilisateur', component : StockUserComponent, canActivate: [AuthGuard]},
       {path : 'type-materiel', component : TypeMaterielComponent, canActivate: [AuthGuard]},
-      {path : 'type-materiel/add', component : TypeMaterielAddComponent, canActivate: [AuthGuard]}
+      {path : 'type-materiel/add', component : TypeMaterielAddComponent, canActivate: [AuthGuard]},
+      {path : 'calendrier', component : AdminCalendrierComponent, canActivate: [AuthGuard]}
     ]
   },
   {path : 'test',component : TestComponent},

@@ -1,59 +1,75 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { ItemService } from '../../../services/item.service';
+import { HardwareTypeService, HardwareType } from '../../../services/hardwaretype.service';
 
 @Component({
   selector: 'app-item-add',
   templateUrl: './item-add.component.html',
   providers: [MessageService]
 })
-export class ItemAddComponent {
-  metiers: any[] = [
-    { label: '📡 Intrusion', value: 'intrusion' },
-    { label: '🔥 Incendie', value: 'incendie' },
-    { label: '🔐 Contrôle d\'accès', value: 'controle-acces' },
-    { label: '📹 CCTV', value: 'cctv' }
-  ];
-  allTypesMateriel: any[] = [
-    { label: 'Caméra', value: 'camera', metier: 'cctv' },
-    { label: 'Centrale', value: 'centrale', metier: 'intrusion' },
-    { label: 'Badgeuse', value: 'badgeuse', metier: 'controle-acces' },
-    { label: 'Détecteur', value: 'detecteur', metier: 'incendie' },
-    { label: 'Sirène', value: 'sirene', metier: 'intrusion' },
-    { label: 'Clavier', value: 'clavier', metier: 'intrusion' },
-    { label: 'Détecteur fumée', value: 'detecteur-fumee', metier: 'incendie' },
-  ];
-  typesMateriel: any[] = [];
+export class ItemAddComponent implements OnInit {
+  typesMateriel: HardwareType[] = [];
+  loadingTypes = false;
 
   newItem: any = {
     Name: '',
     Description: '',
-    metier: '',
-    IdHardwareType: null,
-    IdWorkList: null
+    IdHardwareType: null
   };
 
   constructor(
     private messageService: MessageService,
     private itemService: ItemService,
+    private hardwareTypeService: HardwareTypeService,
     private router: Router
   ) {}
 
-  onMetierChange() {
-    this.typesMateriel = this.allTypesMateriel.filter(type => type.metier === this.newItem.metier);
-    this.newItem.IdHardwareType = null;
+  ngOnInit() {
+    this.loadTypesMateriel();
+  }
+
+  loadTypesMateriel() {
+    this.loadingTypes = true;
+    this.hardwareTypeService.listHardwareTypes().subscribe({
+      next: (types) => {
+        this.typesMateriel = types;
+        this.loadingTypes = false;
+      },
+      error: () => {
+        this.typesMateriel = [];
+        this.loadingTypes = false;
+        this.messageService.add({ severity: 'error', summary: 'Erreur', detail: 'Impossible de charger les types de matériel' });
+      }
+    });
   }
 
   saveItem() {
-    if (this.newItem.Name && this.newItem.metier) {
-      // TODO: Appel API pour créer l'item
-      this.messageService.add({
-        severity: 'success',
-        summary: 'Succès',
-        detail: 'Item ajouté avec succès'
+    const idHardwareType = Number(this.newItem.IdHardwareType);
+    if (this.newItem.Name && idHardwareType > 0) {
+      const addBy = Number(sessionStorage.getItem('IdUser')) || 1;
+      this.itemService.addItem({
+        Name: this.newItem.Name,
+        IdHardwareType: idHardwareType,
+        AddBy: addBy
+      }).subscribe({
+        next: (res) => {
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Succès',
+            detail: res.Message || 'Item ajouté avec succès'
+          });
+          this.router.navigate(['/Admin/gestion-item']);
+        },
+        error: (err) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Erreur',
+            detail: err.error?.ErrorMessage || 'Erreur lors de l\'ajout de l\'item'
+          });
+        }
       });
-      this.router.navigate(['/admin/item']);
     } else {
       this.messageService.add({
         severity: 'error',

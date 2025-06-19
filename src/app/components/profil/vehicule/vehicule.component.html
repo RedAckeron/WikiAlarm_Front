@@ -23,9 +23,9 @@
             <td>{{ v.Immatriculation }}</td>
             <td>{{ v.Km }}</td>
             <td>
-              <button class="btn btn-sm btn-info me-2" (click)="openStockDialog(v)">
+              <a [routerLink]="['/profil/vehicule/stock', v.Id]" class="btn btn-sm btn-info me-2">
                 <i class="pi pi-box"></i> Voir le stock
-              </button>
+              </a>
               <button class="btn btn-sm btn-warning" (click)="openCarPassDialog(v)">
                 <i class="pi pi-id-card"></i> CarPass
               </button>
@@ -42,42 +42,7 @@
 </div>
 
 <!-- Dialog Stock -->
-<p-dialog 
-  [(visible)]="displayStockDialog" 
-  [style]="{width: '600px'}" 
-  [header]="'Stock du véhicule ' + (selectedVehicule?.Immatriculation || '')" 
-  [modal]="true"
-  [draggable]="false"
-  [resizable]="false">
-  <div class="card">
-    <div class="card-body p-0">
-      <div *ngIf="loadingStock" class="text-center p-3">
-        <i class="pi pi-spin pi-spinner" style="font-size: 1.5rem;"></i>
-        <span class="ms-2">Chargement du stock...</span>
-      </div>
-      <div *ngIf="!loadingStock && stockItems.length === 0" class="text-center p-3">
-        <i class="pi pi-info-circle"></i>
-        <span class="ms-2">Aucun stock disponible</span>
-      </div>
-      <div *ngIf="!loadingStock && stockItems.length > 0" class="table-responsive">
-        <table class="table table-striped table-hover mb-0">
-          <thead>
-            <tr>
-              <th>Article</th>
-              <th class="text-end">Quantité</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let item of stockItems">
-              <td>{{ item.Name }}</td>
-              <td class="text-end">{{ item.Quantity }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-</p-dialog>
+<!-- (popup supprimé) -->
 
 <!-- Dialog CarPass -->
 <p-dialog 
@@ -118,7 +83,7 @@
           <div class="invalid-feedback" *ngIf="carPassForm.get('occasion')?.errors?.['required']">
             L'occasion est requise
           </div>
-        </div>
+        </div> 
 
         <div class="text-end">
           <button type="button" class="btn btn-secondary me-2" (click)="displayCarPassDialog = false">

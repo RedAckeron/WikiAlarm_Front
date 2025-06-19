@@ -1,0 +1,116 @@
+<div style="color: red; font-weight: bold;">TEST MODIF VEHICULE STOCK</div>
+
+<div class="vehicule-stock-row">
+  <div class="vehicule-stock-col" style="flex: 1; min-width: 300px;">
+    <h3>Stock du véhicule</h3>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Article</th>
+          <th>Quantité</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let item of stock" (click)="openRetraitDialog(item)" style="cursor:pointer;">
+          <td>{{ item.ItemName }}</td>
+          <td>{{ item.Qt }}</td>
+          <td>
+            <button type="button" class="btn btn-outline-danger btn-sm" (click)="openRetraitDialog(item)">
+              <i class="pi pi-minus"></i>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="vehicule-stock-col" style="flex: 1; min-width: 300px;">
+    <h3>Derniers mouvements de stock</h3>
+    <div *ngIf="isLoadingHistorique" class="text-center my-4">
+      <i class="pi pi-spin pi-spinner" style="font-size: 2rem;"></i>
+      <div>Chargement de l'historique...</div>
+    </div>
+    <div *ngIf="!isLoadingHistorique">
+      <ng-content select="[historique]"></ng-content>
+    </div>
+  </div>
+</div>
+
+<p-dialog header="Retirer du stock" [(visible)]="displayRetraitDialog" [modal]="true" [style]="{width: '400px'}">
+  <form [formGroup]="retraitForm" (ngSubmit)="submitRetrait()">
+    <div class="mb-3">
+      <label>Quantité à retirer</label>
+      <select class="form-select" formControlName="quantity">
+        <option *ngFor="let q of retraitQuantities" [value]="q">{{ q }}</option>
+      </select>
+    </div>
+    <div class="mb-3">
+      <label>Client</label>
+      <input type="text" class="form-control" formControlName="client" placeholder="Nom du client">
+    </div>
+    <div class="d-flex justify-content-end">
+      <button pButton type="button" class="p-button-text me-2" (click)="displayRetraitDialog = false">Annuler</button>
+      <button pButton type="submit" class="p-button-primary" [disabled]="!retraitForm.valid">Retirer</button>
+    </div>
+  </form>
+</p-dialog>
+
+<p-dialog header="Ajouter un item" [(visible)]="displayAddDialog" [style]="{width: '450px'}" [modal]="true">
+  <form [formGroup]="addForm" (ngSubmit)="submitAddItem()">
+    <div class="p-fluid">
+      <div class="p-field mb-3">
+        <label for="hardwareType">Type de matériel *</label>
+        <select class="form-select" id="hardwareType" formControlName="hardwareType" (change)="onHardwareTypeChange($event)">
+          <option value="">Sélectionnez un type</option>
+          <option *ngFor="let type of hardwareTypes" [value]="type.Id">{{ type.Name }}</option>
+        </select>
+      </div>
+
+      <div class="p-field mb-3" *ngIf="addForm.get('hardwareType')?.value">
+        <label for="itemSearch">Rechercher un article</label>
+        <div class="p-inputgroup">
+          <input type="text" pInputText class="form-control" placeholder="Tapez pour filtrer..." [(ngModel)]="itemSearch" [ngModelOptions]="{standalone: true}" (input)="filterItems()">
+          <button pButton type="button" icon="pi pi-search" class="p-button-secondary"></button>
+        </div>
+        <label for="item">Article *</label>
+        <p-dropdown
+          [options]="filteredItems"
+          [(ngModel)]="selectedItem"
+          [ngModelOptions]="{standalone: true}"
+          optionLabel="Name"
+          placeholder="Sélectionnez un article"
+          [showClear]="true"
+          class="mt-2">
+          <ng-template let-item pTemplate="item">
+            <div>{{ item.Name }}</div>
+          </ng-template>
+        </p-dropdown>
+      </div>
+
+      <div class="p-field mb-3" *ngIf="addForm.get('hardwareType')?.value && selectedItem">
+        <label for="quantity">Quantité *</label>
+        <p-inputNumber 
+          id="quantity" 
+          formControlName="quantity" 
+          [min]="1" 
+          [showButtons]="true"
+          buttonLayout="horizontal"
+          spinnerMode="horizontal"
+          decrementButtonClass="p-button-secondary"
+          incrementButtonClass="p-button-secondary"
+          incrementButtonIcon="pi pi-plus"
+          decrementButtonIcon="pi pi-minus">
+        </p-inputNumber>
+      </div>
+    </div>
+
+    <div class="p-dialog-footer">
+      <button pButton type="button" label="Annuler" icon="pi pi-times" class="p-button-text" (click)="displayAddDialog = false"></button>
+      <button pButton type="submit" label="Ajouter" icon="pi pi-check" [disabled]="!addForm.valid || !selectedItem"></button>
+    </div>
+  </form>
+</p-dialog>
+
+<button class="btn btn-primary btn-sm" (click)="displayAddDialog = true">
+  <i class="pi pi-plus"></i> Ajouter un item
+</button> 

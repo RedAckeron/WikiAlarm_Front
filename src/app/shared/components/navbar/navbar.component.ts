@@ -77,6 +77,7 @@ logout()
       {label: 'Profil', icon: 'pi pi-user', routerLink: ['/profil']},
       {label: 'Véhicule', icon: 'pi pi-car', routerLink: ['/profil/vehicule']},
       {label: 'Stock', icon: 'pi pi-shopping-cart', routerLink: ['/stock']},
+      {label: 'Calendrier', icon: 'pi pi-calendar', routerLink: ['/calendrier']},
       {
           label: 'Base de connaissance',
           icon: 'pi pi-book',
@@ -102,7 +103,9 @@ logout()
           {label: 'Gestion Item', icon: 'pi pi-box', routerLink: ['/Admin/gestion-item']},
           {label: 'Type de matériel', icon: 'pi pi-cog', routerLink: ['/Admin/type-materiel']},
           {label: 'Stock Véhicule', icon: 'pi pi-truck', routerLink: ['/Admin/stock-vehicule']},
-          {label: 'Stock Utilisateur', icon: 'pi pi-users', routerLink: ['/Admin/stock-utilisateur']}
+          {label: 'Stock Utilisateur', icon: 'pi pi-users', routerLink: ['/Admin/stock-utilisateur']},
+          {separator: true},
+          {label: 'Calendrier', icon: 'pi pi-calendar', routerLink: ['/Admin/calendrier']}
         ]
       });
     }

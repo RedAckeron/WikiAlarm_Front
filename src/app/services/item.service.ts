@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { environment } from 'src/environments/environment';
 
 export interface Item {
   id: string;
@@ -18,7 +19,7 @@ export interface Item {
   providedIn: 'root'
 })
 export class ItemService {
-  private apiUrl = 'http://ackeron.be/.api/WikiAlarm/?route=item/List';
+  private apiUrl = environment.apiUrl + '?route=item/List';
 
   constructor(private http: HttpClient) { }
 
@@ -26,6 +27,27 @@ export class ItemService {
     const apiKey = sessionStorage.getItem('apiKey');
     return this.http.post<any>(this.apiUrl, { ApiKey: apiKey }).pipe(
       map(response => response.JsonResult.items)
+    );
+  }
+
+  addItem(item: { Name: string; IdHardwareType: number; AddBy: number }): Observable<any> {
+    const apiKey = sessionStorage.getItem('apiKey');
+    const body = {
+      ApiKey: apiKey,
+      Name: item.Name,
+      IdHardwareType: item.IdHardwareType,
+      AddBy: item.AddBy
+    };
+    return this.http.post(environment.apiUrl + '?route=item/Add', body);
+  }
+
+  getItemsByHardwareType(idHardwareType: number): Observable<Item[]> {
+    const apiKey = sessionStorage.getItem('apiKey');
+    return this.http.post<any>(environment.apiUrl + '?route=item/ListByHardwareType', {
+      ApiKey: apiKey,
+      IdHardwareType: idHardwareType
+    }).pipe(
+      map(response => response.JsonResult)
     );
   }
 } 

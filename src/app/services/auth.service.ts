@@ -1,7 +1,7 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable, OnInit } from '@angular/core';
 import { BehaviorSubject, Observable, map, catchError, throwError } from 'rxjs';
-import { environment } from '../environements/environement';
+import { environment } from 'src/environments/environment';
 import { User } from '../models/User';
 import { UserFormLogin } from '../models/Forms/UsersFormLogin';
 import { TokenService } from './token.service';
@@ -52,19 +52,18 @@ export class AuthService {
 
   login(userform:UserFormLogin):Observable<User>
     {
-    return this._httpClient.post<any>(`${environment.apiUrl}/WikiAlarm/?route=user/login`,{
+    return this._httpClient.post<any>(environment.apiUrl + '?route=user/login',{
       email: userform.Email,
       password: userform.Password
     })
-    .pipe(map(user=>
-        {
-          if(user.JsonResult && user.JsonResult.Id)
-          {
-            this._tokenService.saveToken(user.JsonResult.Id.toString());
-            sessionStorage.setItem('Email', user.JsonResult.Email || '');
-            sessionStorage.setItem('FirstName', user.JsonResult.Name || '');
-            sessionStorage.setItem('apiKey', user.JsonResult.ApiKey || '');
-            sessionStorage.setItem('userRole', user.JsonResult.Role || '');
+    .pipe(map(response => {
+          if (response.Status === 200 && response.JsonResult) {
+            const user = response.JsonResult;
+            this._tokenService.saveToken(user.Id.toString());
+            sessionStorage.setItem('Email', user.Email || '');
+            sessionStorage.setItem('FirstName', user.Name || '');
+            sessionStorage.setItem('apiKey', user.ApiKey || '');
+            sessionStorage.setItem('userRole', user.Role || '');
             
             // Détecter si l'utilisateur utilise le mot de passe par défaut
             if (userform.Password === 'WikiAlarm') {
@@ -74,11 +73,12 @@ export class AuthService {
             }
             
             this.IsConnected.next(true);
+            return user;
           }
-          return user.JsonResult;
+          throw new Error(response.ErrorMessage || 'Login ou mot de passe incorrect !');
         }),
         catchError(error => {
-          return throwError(error);
+          return throwError(() => error);
         }))
     }
 
@@ -87,7 +87,7 @@ export class AuthService {
     const email = _registerForm.Email || '';
     const name = email.split('@')[0] || 'Utilisateur';
 
-    return this._httpClient.post<any>(`${environment.apiUrl}/WikiAlarm/?route=user/create`,{
+    return this._httpClient.post<any>(environment.apiUrl + '?route=user/create',{
       email: email,
       password: _registerForm.Password,
       name: name

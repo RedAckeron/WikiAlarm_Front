@@ -8,27 +8,27 @@
   <div class="card-body">
     <form (ngSubmit)="saveItem()" class="p-fluid">
       <div class="p-field mb-3">
-        <label for="metier"><strong>Métier *</strong></label>
-        <p-dropdown [options]="metiers" [(ngModel)]="newItem.metier" name="metier" (onChange)="onMetierChange()" placeholder="Sélectionnez un métier" optionLabel="label" optionValue="value" [showClear]="true" class="p-inputtext-sm"></p-dropdown>
-      </div>
-      <div class="p-field mb-3">
-        <label for="hardwareType"><strong>Type de matériel</strong></label>
-        <p-dropdown [options]="typesMateriel" [(ngModel)]="newItem.IdHardwareType" name="IdHardwareType" placeholder="Sélectionnez un type de matériel" optionLabel="label" optionValue="value" [showClear]="true" class="p-inputtext-sm" [disabled]="!newItem.metier"></p-dropdown>
+        <label for="hardwareType"><strong>Type de matériel *</strong></label>
+        <p-dropdown 
+          [options]="typesMateriel" 
+          [(ngModel)]="newItem.IdHardwareType" 
+          name="IdHardwareType"
+          placeholder="Sélectionnez un type de matériel"
+          optionLabel="Name" 
+          optionValue="id"
+          [showClear]="true"
+          class="p-inputtext-sm">
+        </p-dropdown>
       </div>
       <div class="p-field mb-3">
         <label for="name"><strong>Nom *</strong></label>
         <input pInputText id="name" [(ngModel)]="newItem.Name" name="Name" placeholder="Nom de l'item..." class="p-inputtext-sm" required />
-      </div>
-      <div class="p-field mb-3">
-        <label for="description"><strong>Description</strong></label>
-        <textarea pInputTextarea id="description" [(ngModel)]="newItem.Description" name="Description" placeholder="Description de l'item..." [rows]="3" class="p-inputtext-sm"></textarea>
       </div>
       <div class="alert alert-info mt-3">
         <i class="pi pi-info-circle"></i>
         <strong>Information :</strong> Les champs marqués d'un astérisque (*) sont obligatoires.
       </div>
       <div class="mt-4">
-        <p-button label="Annuler" icon="pi pi-times" styleClass="p-button-text p-button-secondary" (onClick)="cancelAdd()"></p-button>
         <p-button label="Enregistrer" icon="pi pi-check" styleClass="p-button-primary" type="submit"></p-button>
       </div>
     </form>

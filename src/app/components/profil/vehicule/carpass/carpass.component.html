@@ -1,0 +1,58 @@
+<div class="carpass-container">
+  <div class="card mb-4">
+    <div class="card-header">
+      <h5 class="mb-0">Mise à jour CarPass</h5>
+    </div>
+    <div class="card-body">
+      <form [formGroup]="carPassForm" (ngSubmit)="submitCarPass()">
+        <div class="mb-3">
+          <label for="kilometrage" class="form-label">Kilométrage</label>
+          <input type="number" class="form-control" id="kilometrage" formControlName="kilometrage" [ngClass]="{'is-invalid': carPassForm.get('kilometrage')?.invalid && carPassForm.get('kilometrage')?.touched}">
+          <div class="invalid-feedback" *ngIf="carPassForm.get('kilometrage')?.errors?.['required']">
+            Le kilométrage est requis
+          </div>
+          <div class="invalid-feedback" *ngIf="carPassForm.get('kilometrage')?.errors?.['min']">
+            Le kilométrage doit être positif
+          </div>
+        </div>
+        <div class="mb-3">
+          <label for="occasion" class="form-label">Occasion</label>
+          <textarea class="form-control" id="occasion" rows="3" formControlName="occasion" [ngClass]="{'is-invalid': carPassForm.get('occasion')?.invalid && carPassForm.get('occasion')?.touched}" placeholder="Décrivez l'occasion de la mise à jour du kilométrage..."></textarea>
+          <div class="invalid-feedback" *ngIf="carPassForm.get('occasion')?.errors?.['required']">
+            L'occasion est requise
+          </div>
+        </div>
+        <div class="text-end">
+          <button type="submit" class="btn btn-warning" [disabled]="carPassForm.invalid">
+            Enregistrer
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h6 class="mb-0">Historique des entrées</h6>
+    </div>
+    <div class="card-body p-0">
+      <div *ngIf="loadingHistory" class="text-center p-3">
+        <i class="pi pi-spin pi-spinner" style="font-size: 1.5rem;"></i>
+        <span class="ms-2">Chargement de l'historique...</span>
+      </div>
+      <div *ngIf="!loadingHistory && carPassHistory.length === 0" class="text-center p-3">
+        <i class="pi pi-info-circle"></i>
+        <span class="ms-2">Aucun historique disponible</span>
+      </div>
+      <div *ngIf="!loadingHistory && carPassHistory.length > 0" class="list-group list-group-flush">
+        <div *ngFor="let entry of carPassHistory" class="list-group-item">
+          <div class="d-flex justify-content-between align-items-center">
+            <small class="text-muted">{{ entry.date | date:'dd/MM/yyyy' }}</small>
+            <strong>{{ entry.kilometrage }} km</strong>
+          </div>
+          <div class="mt-1">{{ entry.occasion }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
