@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 import { RegisterForm } from 'src/app/models/Forms/RegisterForm';
+import { RegisterResponse } from 'src/app/models/Forms/RegisterResponse';
 import { AuthService } from 'src/app/services/auth.service';
 import { TokenService } from 'src/app/services/token.service';
 import { UserService } from 'src/app/services/user.service';
@@ -47,18 +48,17 @@ export class RegisterComponent implements OnInit {
     this.registerForm.Password = this.RegisterUser.value['Password']
 
     this._authService.register(this.registerForm).subscribe({
-      next : (data) => {
-        if (data) {
-          console.table(data)
-          if(data.Id!=0)
+      next : (response: RegisterResponse) => {
+        if (response) {
+          if(response.id!=0)
           {
-            this._tokenService.saveToken(data.Id.toString())
-            this.messageService.add({ severity: 'info', summary: 'Succes', detail: data.ApiMessage });
+            this._tokenService.saveToken(response.id.toString())
+            this.messageService.add({ severity: 'info', summary: 'Succès', detail: response.apiMessage });
             this._router.navigate(['profil'])
           }
           else 
           {
-            this.messageService.add({ severity: 'error', summary: 'Erreur', detail: data.ApiMessage });
+            this.messageService.add({ severity: 'error', summary: 'Erreur', detail: response.apiMessage });
           }
         }
       },
@@ -72,7 +72,7 @@ export class RegisterComponent implements OnInit {
     }
   else 
   {
-    this.messageService.add({ severity: 'error', summary: 'Erreur', detail: 'Les champs du formulaire sont invalide' });
+    this.messageService.add({ severity: 'error', summary: 'Erreur', detail: 'Les champs du formulaire sont invalides' });
   }
   }    
 

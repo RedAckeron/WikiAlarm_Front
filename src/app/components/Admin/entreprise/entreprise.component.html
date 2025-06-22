@@ -1,0 +1,199 @@
+<div class="entreprise-container">
+  <div class="header-section">
+    <div class="title-section">
+      <h2><i class="pi pi-building"></i> Gestion des Entreprises</h2>
+      <p class="subtitle">Administrer les entreprises partenaires et leurs horaires</p>
+    </div>
+    <div class="actions-section">
+      <p-button 
+        label="Nouvelle Entreprise" 
+        icon="pi pi-plus" 
+        styleClass="p-button-success"
+        (click)="resetForm(); showForm = true"
+        [disabled]="loading">
+      </p-button>
+    </div>
+  </div>
+
+  <!-- Formulaire d'ajout/modification -->
+  <p-dialog 
+    header="{{ editMode ? 'Modifier' : 'Nouvelle' }} Entreprise" 
+    [(visible)]="showForm" 
+    [style]="{width: '600px'}" 
+    [modal]="true" 
+    [closable]="true"
+    (onHide)="closeForm()">
+    
+    <form [formGroup]="entrepriseForm" (ngSubmit)="onSubmit()">
+      <div class="form-grid">
+        <!-- Nom de l'entreprise -->
+        <div class="field">
+          <label for="nom">Nom de l'entreprise *</label>
+          <input 
+            id="nom" 
+            type="text" 
+            pInputText 
+            formControlName="nom"
+            placeholder="Ex: Dumay Mior"
+            [ngClass]="{'ng-invalid ng-dirty': entrepriseForm.get('nom')?.invalid && entrepriseForm.get('nom')?.touched}">
+          <small class="p-error" *ngIf="entrepriseForm.get('nom')?.invalid && entrepriseForm.get('nom')?.touched">
+            <span *ngIf="entrepriseForm.get('nom')?.errors?.['required']">Le nom est requis.</span>
+            <span *ngIf="entrepriseForm.get('nom')?.errors?.['minlength']">Le nom doit contenir au moins 2 caractères.</span>
+          </small>
+        </div>
+
+        <!-- Couleur -->
+        <div class="field">
+          <label for="couleur">Couleur d'identification *</label>
+          <div class="color-selection">
+            <div class="color-options">
+              <div 
+                *ngFor="let couleur of couleursOptions" 
+                class="color-option"
+                [ngClass]="{'selected': entrepriseForm.get('couleur')?.value === couleur.value}"
+                [style.background-color]="couleur.color"
+                [title]="couleur.label"
+                (click)="entrepriseForm.patchValue({couleur: couleur.value})">
+                <i class="pi pi-check" *ngIf="entrepriseForm.get('couleur')?.value === couleur.value"></i>
+              </div>
+            </div>
+            <input type="hidden" formControlName="couleur">
+          </div>
+        </div>
+
+        <!-- Horaires par jour -->
+        <div class="field">
+          <label>Horaires de travail *</label>
+          <div class="horaires-par-jour">
+            <div class="jour-horaire" *ngFor="let jour of joursOptions">
+              <div class="jour-header">
+                <input 
+                  type="checkbox" 
+                  [id]="'jour-' + jour.value"
+                  [checked]="isJourActif(jour.value)"
+                  (change)="toggleJourActif(jour.value, $event)">
+                <label [for]="'jour-' + jour.value" class="jour-label">
+                  {{ jour.label }}
+                </label>
+              </div>
+              <div class="horaires-inputs" *ngIf="isJourActif(jour.value)">
+                <input 
+                  type="time" 
+                  [value]="getHeureDebut(jour.value)"
+                  (change)="updateHeureDebut(jour.value, $event)"
+                  placeholder="Début">
+                <span class="separator">-</span>
+                <input 
+                  type="time" 
+                  [value]="getHeureFin(jour.value)"
+                  (change)="updateHeureFin(jour.value, $event)"
+                  placeholder="Fin">
+              </div>
+              <div class="jour-ferme" *ngIf="!isJourActif(jour.value)">
+                <span>Fermé</span>
+              </div>
+            </div>
+          </div>
+          <small class="p-error" *ngIf="!hasAtLeastOneActiveDay()">
+            Veuillez sélectionner au moins un jour d'activité.
+          </small>
+        </div>
+
+        <!-- Description -->
+        <div class="field">
+          <label for="description">Description (optionnel)</label>
+          <textarea 
+            id="description" 
+            pInputTextarea 
+            formControlName="description"
+            placeholder="Description de l'entreprise..."
+            rows="3">
+          </textarea>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <p-button 
+          label="Annuler" 
+          icon="pi pi-times" 
+          styleClass="p-button-text"
+          type="button"
+          (click)="closeForm()">
+        </p-button>
+        <p-button 
+          [label]="editMode ? 'Modifier' : 'Créer'" 
+          [icon]="editMode ? 'pi pi-pencil' : 'pi pi-plus'" 
+          styleClass="p-button-success"
+          type="submit"
+          [loading]="loading"
+          [disabled]="entrepriseForm.invalid">
+        </p-button>
+      </div>
+    </form>
+  </p-dialog>
+
+  <!-- Liste des entreprises -->
+  <div class="entreprises-list">
+    <p-card>
+      <ng-template pTemplate="header">
+        <div class="card-header">
+          <h5><i class="pi pi-list"></i> Entreprises Enregistrées</h5>
+          <span class="count-badge">{{ entreprises.length }} entreprise{{ entreprises.length > 1 ? 's' : '' }}</span>
+        </div>
+      </ng-template>
+
+      <div *ngIf="loading && entreprises.length === 0" class="loading-state">
+        <i class="pi pi-spin pi-spinner"></i>
+        <p>Chargement des entreprises...</p>
+      </div>
+
+      <div *ngIf="!loading && entreprises.length === 0" class="empty-state">
+        <i class="pi pi-building"></i>
+        <h6>Aucune entreprise</h6>
+        <p>Commencez par ajouter votre première entreprise avec le bouton "Nouvelle Entreprise" ci-dessus</p>
+      </div>
+
+      <div class="entreprises-grid" *ngIf="entreprises.length > 0">
+        <div class="entreprise-card" *ngFor="let entreprise of entreprises">
+          <div class="entreprise-header" [style.background-color]="entreprise.couleur">
+            <div class="entreprise-info">
+              <h6>{{ entreprise.nom }}</h6>
+            </div>
+            <div class="entreprise-actions">
+              <p-button 
+                icon="pi pi-pencil" 
+                styleClass="p-button-text p-button-sm"
+                pTooltip="Modifier"
+                (click)="editEntreprise(entreprise)">
+              </p-button>
+              <p-button 
+                icon="pi pi-trash" 
+                styleClass="p-button-text p-button-danger p-button-sm"
+                pTooltip="Supprimer"
+                (click)="deleteEntreprise(entreprise)">
+              </p-button>
+            </div>
+          </div>
+          <div class="entreprise-content">
+            <!-- Détail des horaires par jour -->
+            <div class="horaires-detail">
+              <div class="jour-detail" *ngFor="let jourDetail of getJoursAvecHoraires(entreprise)">
+                <span class="jour-nom">{{ jourDetail.nom }}</span>
+                <span class="jour-horaire">{{ jourDetail.horaire }}</span>
+              </div>
+            </div>
+            
+            <!-- Description si elle existe -->
+            <div class="info-row" *ngIf="entreprise.description" style="margin-top: 12px;">
+              <span class="label">Description:</span>
+              <span class="value">{{ entreprise.description }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </p-card>
+  </div>
+</div>
+
+<p-toast position="bottom-right"></p-toast>
+<p-confirmDialog></p-confirmDialog> 

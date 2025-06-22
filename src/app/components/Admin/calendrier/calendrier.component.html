@@ -1,1 +1,339 @@
-<p>calendrier works!</p>
+<div class="calendrier-container">
+  <div class="calendrier-header">
+    <h2>Calendrier des affectations</h2>
+    <div class="navigation">
+      <button class="btn btn-outline-primary btn-sm" (click)="previousWeek()">
+        <i class="pi pi-chevron-left"></i> Précédente
+      </button>
+      <span class="current-week">
+        {{ currentWeek[0] | date:'dd/MM' }} - {{ currentWeek[6] | date:'dd/MM/yyyy' }}
+      </span>
+      <button class="btn btn-outline-primary btn-sm" (click)="nextWeek()">
+        Suivante <i class="pi pi-chevron-right"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Affichage des affectations semaine complète par entreprise -->
+  <div class="week-affectations" *ngFor="let weekAffectation of getWeekAffectations()">
+    <div class="entreprise-week-block" [style.background-color]="weekAffectation.couleur">
+      <div class="user-info">
+        <div class="user-name">{{ weekAffectation.userName }}</div>
+        <div class="week-details">{{ weekAffectation.daysCount }} jours sur 7</div>
+      </div>
+      <div class="affectation-info">
+        <span class="entreprise-name">{{ weekAffectation.entrepriseName }}</span>
+        <span class="dates">{{ weekAffectation.startDate | date:'dd/MM' }} - {{ weekAffectation.endDate | date:'dd/MM' }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="calendrier-grid">
+    <div class="day-header" *ngFor="let day of currentWeek">
+      <div class="day-name">{{ getDayNameInFrench(day) }}</div>
+      <div class="day-number">{{ day | date:'dd/MM' }}</div>
+    </div>
+
+    <div class="day-content" *ngFor="let day of currentWeek">
+      <!-- Affectations du jour -->
+      <div class="day-affectations">
+        <div class="affectation-group" *ngFor="let entrepriseAffectation of getDailyAffectations(day)">
+          <div class="company-label" [style.background-color]="entrepriseAffectation.couleur">
+            {{ entrepriseAffectation.entreprise }}
+          </div>
+          <div class="employees">
+            <div class="employee-item" *ngFor="let employe of entrepriseAffectation.employes">
+              <div class="employee-name">
+                <div class="first-name">{{ employe.prenom }}</div>
+                <div class="last-name">{{ employe.nom }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Bouton d'ajout unifié -->
+      <div class="add-button-container">
+        <button class="add-btn" (click)="onAffectClick(day)">
+          <i class="pi pi-plus"></i>
+          <span>Ajouter</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal d'affectation -->
+<p-dialog 
+  header="Nouvelle Affectation" 
+  [(visible)]="showAffectationModal" 
+  [modal]="true" 
+  [style]="{width: '500px'}"
+  [closable]="true">
+  
+  <div class="affectation-form">
+    <!-- Type d'affectation -->
+    <div class="field">
+      <label for="typeAffectation">Type d'affectation *</label>
+      <p-dropdown 
+        id="typeAffectation"
+        [(ngModel)]="affectationForm.typeAffectation"
+        [options]="[
+          {label: 'Jour unique', value: 'jour'},
+          {label: 'Semaine complète', value: 'semaine'}
+        ]"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="Sélectionner le type"
+        (onChange)="onTypeAffectationChange()"
+        class="w-full">
+      </p-dropdown>
+    </div>
+
+    <!-- Utilisateur -->
+    <div class="field">
+      <label for="utilisateur">Utilisateur * ({{ utilisateurs.length }} utilisateur(s) disponible(s))</label>
+      <p-dropdown 
+        id="utilisateur"
+        [(ngModel)]="affectationForm.userId"
+        [options]="utilisateurs"
+        optionLabel="email"
+        optionValue="id"
+        placeholder="Sélectionner un utilisateur"
+        class="w-full"
+        [showClear]="true">
+        <ng-template pTemplate="selectedItem">
+          <span *ngIf="affectationForm.userId">
+            {{ getUtilisateurName(affectationForm.userId) }}
+          </span>
+        </ng-template>
+        <ng-template let-user pTemplate="item">
+          <div class="user-option">
+            <div class="user-name">{{ user.prenom }} {{ user.nom }}</div>
+            <div class="user-email">{{ user.email }}</div>
+          </div>
+        </ng-template>
+      </p-dropdown>
+    </div>
+
+    <!-- Entreprise -->
+    <div class="field">
+      <label for="entreprise">Entreprise *</label>
+      <div *ngIf="entreprises && entreprises.length > 0; else loadingEntreprises">
+      <p-dropdown 
+        id="entreprise"
+        [(ngModel)]="affectationForm.entrepriseId"
+        [options]="entreprises"
+        optionLabel="nom"
+        optionValue="id"
+        placeholder="Sélectionner une entreprise"
+        (onChange)="onEntrepriseChange()"
+        class="w-full">
+        <ng-template let-entreprise pTemplate="item">
+          <div class="entreprise-option">
+            <span class="entreprise-color" [style.background-color]="entreprise.couleur"></span>
+            <span>{{ entreprise.nom }}</span>
+          </div>
+        </ng-template>
+      </p-dropdown>
+      </div>
+      <ng-template #loadingEntreprises>
+        <div class="loading-message">
+          <i class="pi pi-spin pi-spinner"></i>
+          Chargement des entreprises...
+        </div>
+      </ng-template>
+    </div>
+
+    <!-- Dates concernées -->
+    <div class="field">
+      <label>Dates concernées</label>
+      <div class="dates-list">
+        <span *ngFor="let date of affectationForm.dates" class="date-chip">
+          {{ date | date:'dd/MM/yyyy' }}
+        </span>
+      </div>
+    </div>
+
+    <!-- Horaires -->
+    <div class="field">
+      <div class="checkbox-field">
+        <p-checkbox 
+          [(ngModel)]="affectationForm.useDefaultHours"
+          (onChange)="onUseDefaultHoursChange()"
+          [binary]="true">
+        </p-checkbox>
+        <label>Utiliser les horaires par défaut de l'entreprise</label>
+      </div>
+    </div>
+
+    <div class="field" *ngIf="!affectationForm.useDefaultHours">
+      <div class="time-inputs">
+        <div class="time-field">
+          <label for="heureDebut">Heure de début</label>
+          <input 
+            id="heureDebut"
+            type="time" 
+            [(ngModel)]="affectationForm.heureDebut"
+            class="form-control">
+        </div>
+        <div class="time-field">
+          <label for="heureFin">Heure de fin</label>
+          <input 
+            id="heureFin"
+            type="time" 
+            [(ngModel)]="affectationForm.heureFin"
+            class="form-control">
+        </div>
+      </div>
+    </div>
+
+    <!-- Exception -->
+    <div class="field">
+      <div class="checkbox-field">
+        <p-checkbox 
+          [(ngModel)]="affectationForm.isException"
+          [binary]="true">
+        </p-checkbox>
+        <label>Marquer comme exception</label>
+      </div>
+    </div>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <p-button 
+      label="Annuler" 
+      icon="pi pi-times" 
+      (onClick)="showAffectationModal = false"
+      class="p-button-text">
+    </p-button>
+    <p-button 
+      label="Créer l'affectation" 
+      icon="pi pi-check" 
+      (onClick)="submitAffectation()">
+    </p-button>
+  </ng-template>
+</p-dialog>
+
+<!-- Modal de modification -->
+<p-dialog 
+  header="Modifier l'affectation" 
+  [(visible)]="showModificationModal" 
+  [modal]="true" 
+  [style]="{width: '400px'}"
+  [closable]="true">
+  
+  <div class="modification-form" *ngIf="selectedAffectation">
+    <div class="current-info">
+      <h4>Affectation actuelle</h4>
+      <p><strong>Utilisateur:</strong> {{ selectedAffectation.userName }}</p>
+      <p><strong>Entreprise:</strong> {{ selectedAffectation.entrepriseName }}</p>
+      <p><strong>Date:</strong> {{ selectedAffectation.date | date:'dd/MM/yyyy' }}</p>
+      <p><strong>Horaires:</strong> {{ getHoraires(selectedAffectation) }}</p>
+      <p *ngIf="selectedAffectation.isException"><strong>Type:</strong> Exception</p>
+    </div>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <p-button 
+      label="Supprimer" 
+      icon="pi pi-trash" 
+      (onClick)="deleteAffectation()"
+      class="p-button-danger">
+    </p-button>
+    <p-button 
+      label="Annuler" 
+      icon="pi pi-times" 
+      (onClick)="showModificationModal = false"
+      class="p-button-text">
+    </p-button>
+    <p-button 
+      label="Modifier" 
+      icon="pi pi-check" 
+      (onClick)="submitModification()">
+    </p-button>
+  </ng-template>
+</p-dialog>
+
+<!-- Modal de gestion des horaires d'entreprise -->
+<p-dialog 
+  header="Gestion des Horaires d'Entreprise" 
+  [(visible)]="showHorairesModal" 
+  [modal]="true" 
+  [style]="{width: '700px'}"
+  [closable]="true">
+  
+  <div class="horaires-form">
+    <!-- Sélection de l'entreprise -->
+    <div class="field">
+      <label for="entrepriseHoraire">Entreprise *</label>
+      <p-dropdown 
+        id="entrepriseHoraire"
+        [(ngModel)]="horaireForm.entrepriseId"
+        [options]="entreprises"
+        optionLabel="nom"
+        optionValue="id"
+        placeholder="Sélectionner une entreprise"
+        (onChange)="loadEntrepriseHoraires($event.value)"
+        class="w-full">
+        <ng-template let-entreprise pTemplate="item">
+          <div class="entreprise-option">
+            <span class="entreprise-color" [style.background-color]="entreprise.couleur"></span>
+            <span>{{ entreprise.nom }}</span>
+          </div>
+        </ng-template>
+      </p-dropdown>
+    </div>
+
+    <!-- Configuration des horaires par jour -->
+    <div class="horaires-grid" *ngIf="horaireForm.entrepriseId">
+      <h4>Configuration des horaires par jour</h4>
+      
+      <div class="day-schedule" *ngFor="let horaire of horaireForm.horaires; let i = index">
+        <div class="day-header">
+          <p-checkbox 
+            [(ngModel)]="horaire.active"
+            [binary]="true">
+          </p-checkbox>
+          <label [ngClass]="{'day-active': horaire.active}">
+            {{ calendrierService.getDayName(horaire.day) }}
+          </label>
+        </div>
+        
+        <div class="time-inputs" *ngIf="horaire.active">
+          <div class="time-field">
+            <label>Début</label>
+                       <input 
+             type="time" 
+             [value]="calendrierService.convertTimeFromAPI(horaire.workTimeIn)"
+             (change)="updateWorkTimeIn(i, $event)"
+             class="form-control">
+          </div>
+          <div class="time-field">
+            <label>Fin</label>
+                       <input 
+             type="time" 
+             [value]="calendrierService.convertTimeFromAPI(horaire.workTimeOut)"
+             (change)="updateWorkTimeOut(i, $event)"
+             class="form-control">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <p-button 
+      label="Annuler" 
+      icon="pi pi-times" 
+      (onClick)="showHorairesModal = false"
+      class="p-button-text">
+    </p-button>
+    <p-button 
+      label="Sauvegarder" 
+      icon="pi pi-check" 
+      (onClick)="saveEntrepriseHoraires()"
+      [disabled]="!horaireForm.entrepriseId">
+    </p-button>
+  </ng-template>
+</p-dialog>

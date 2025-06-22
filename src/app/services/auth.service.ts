@@ -4,6 +4,7 @@ import { BehaviorSubject, Observable, map, catchError, throwError } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { User } from '../models/User';
 import { UserFormLogin } from '../models/Forms/UsersFormLogin';
+import { RegisterResponse } from '../models/Forms/RegisterResponse';
 import { TokenService } from './token.service';
 
 @Injectable({
@@ -50,20 +51,25 @@ export class AuthService {
     this._UserSubject.next(token)
   }
 
-  login(userform:UserFormLogin):Observable<User>
+  login(userform:UserFormLogin):Observable<any>
     {
     return this._httpClient.post<any>(environment.apiUrl + '?route=user/login',{
       email: userform.Email,
       password: userform.Password
     })
     .pipe(map(response => {
+          console.log('Réponse API login:', response);
           if (response.Status === 200 && response.JsonResult) {
             const user = response.JsonResult;
+            console.log('User data from API:', user); // Debug log
             this._tokenService.saveToken(user.Id.toString());
             sessionStorage.setItem('Email', user.Email || '');
             sessionStorage.setItem('FirstName', user.Name || '');
             sessionStorage.setItem('apiKey', user.ApiKey || '');
             sessionStorage.setItem('userRole', user.Role || '');
+            // Correction de la récupération du statut actif
+            const activeStatus = user.active || user.Active || 0;
+            sessionStorage.setItem('userActive', activeStatus.toString());
             
             // Détecter si l'utilisateur utilise le mot de passe par défaut
             if (userform.Password === 'WikiAlarm') {
@@ -73,7 +79,8 @@ export class AuthService {
             }
             
             this.IsConnected.next(true);
-            return user;
+            // Retourne l'utilisateur ET le message
+            return { ...user, Message: response.Message };
           }
           throw new Error(response.ErrorMessage || 'Login ou mot de passe incorrect !');
         }),
@@ -82,29 +89,40 @@ export class AuthService {
         }))
     }
 
-  register(_registerForm:UserFormLogin):Observable<User>
-    {
+  register(_registerForm: UserFormLogin): Observable<RegisterResponse> {
     const email = _registerForm.Email || '';
     const name = email.split('@')[0] || 'Utilisateur';
 
-    return this._httpClient.post<any>(environment.apiUrl + '?route=user/create',{
+    return this._httpClient.post<any>(environment.apiUrl + '?route=user/create', {
       email: email,
       password: _registerForm.Password,
       name: name
     })
-    .pipe(map(user=>
-        {
-          if(user.JsonResult && user.JsonResult.id)
-          {
-            this._tokenService.saveToken(user.JsonResult.id.toString());
-            sessionStorage.setItem('Email', user.JsonResult.Email || '');
-            sessionStorage.setItem('FirstName', user.JsonResult.Name || '');
-            sessionStorage.setItem('apiKey', user.JsonResult.ApiKey || '');
-            this.IsConnected.next(true);
-          }
-          return user.JsonResult;
-        }))
-    }
+    .pipe(
+      map(response => {
+        if (response.JsonResult && response.JsonResult.id) {
+          this._tokenService.saveToken(response.JsonResult.id.toString());
+          sessionStorage.setItem('Email', response.JsonResult.email || '');
+          sessionStorage.setItem('FirstName', response.JsonResult.firstName || '');
+          sessionStorage.setItem('apiKey', response.JsonResult.apiKey || '');
+          this.IsConnected.next(true);
+
+          return {
+            id: response.JsonResult.id,
+            email: response.JsonResult.email,
+            apiMessage: response.Message || 'Inscription réussie',
+            status: response.Status || 200
+          };
+        }
+        return {
+          id: 0,
+          email: '',
+          apiMessage: response.Message || 'Erreur lors de l\'inscription',
+          status: response.Status || 400
+        };
+      })
+    );
+  }
 
   logout()
     {
@@ -114,11 +132,16 @@ export class AuthService {
     sessionStorage.removeItem("apiKey");
     sessionStorage.removeItem("userRole");
     sessionStorage.removeItem("hasDefaultPassword");
+    sessionStorage.removeItem("userActive");
     this.IsConnected.next(false);
     }
 
   GetById(id: number): Observable<any> {
-    return this._httpClient.post<any>(`${environment.apiUrl}/user/get.php`, { id: id });
+    const ApiKey = sessionStorage.getItem('apiKey') || '';
+    return this._httpClient.post<any>(`${environment.apiUrl}?route=user/get`, { 
+      ApiKey,
+      id: id 
+    });
   }
 
   // Gestion des rôles

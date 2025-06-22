@@ -1,1 +1,168 @@
-<p>calendrier works!</p>
+<div class="calendrier-container">
+  <!-- En-tête avec navigation et contrôles -->
+  <div class="calendrier-header">
+    <div class="header-left">
+      <h2><i class="pi pi-calendar"></i> Calendrier des Affectations</h2>
+      <p class="subtitle">Vue d'ensemble des utilisateurs assignés par entreprise</p>
+    </div>
+    
+    <div class="header-controls">
+      <!-- Sélecteur de vue -->
+      <div class="view-selector">
+        <button 
+          class="btn btn-view"
+          [class.active]="viewMode === 'week'"
+          (click)="switchViewMode('week')">
+          Semaine
+        </button>
+        <button 
+          class="btn btn-view"
+          [class.active]="viewMode === 'day'"
+          (click)="switchViewMode('day')">
+          Jour
+        </button>
+      </div>
+      
+      <!-- Navigation -->
+      <div class="navigation-controls">
+        <button 
+          class="btn btn-nav"
+          (click)="previousPeriod()">
+          <i class="pi pi-chevron-left"></i>
+        </button>
+        
+        <button 
+          class="btn btn-today"
+          (click)="goToToday()">
+          Aujourd'hui
+        </button>
+        
+        <button 
+          class="btn btn-nav"
+          (click)="nextPeriod()">
+          <i class="pi pi-chevron-right"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Titre de la période -->
+  <div class="period-title">
+    <h3 *ngIf="viewMode === 'week'">{{ getWeekDateRange() }}</h3>
+    <h3 *ngIf="viewMode === 'day'">{{ getCurrentDateStr() }}</h3>
+  </div>
+
+  <!-- Chargement -->
+  <div *ngIf="loading" class="loading-state">
+    <i class="pi pi-spin pi-spinner"></i>
+    <p>Chargement des affectations...</p>
+  </div>
+
+  <!-- Calendrier -->
+  <div class="calendrier-content" *ngIf="!loading">
+    
+    <!-- Vue Semaine -->
+    <div *ngIf="viewMode === 'week'" class="week-view">
+      <div class="week-grid">
+        <!-- En-têtes des jours -->
+        <div class="day-headers">
+          <div 
+            *ngFor="let day of calendarDays" 
+            class="day-header"
+            [class.today]="day.isToday">
+            <div class="day-name">{{ dayNames[day.date.getDay()] }}</div>
+            <div class="day-number">{{ day.date.getDate() }}</div>
+          </div>
+        </div>
+        
+        <!-- Contenu des jours -->
+        <div class="days-content">
+          <div 
+            *ngFor="let day of calendarDays" 
+            class="day-column"
+            [class.today]="day.isToday">
+            
+            <!-- Affectations par entreprise -->
+            <div *ngFor="let entreprise of entreprises" class="entreprise-section">
+              <div 
+                class="entreprise-header"
+                [style.background-color]="entreprise.couleur">
+                <span class="entreprise-nom">{{ entreprise.nom }}</span>
+              </div>
+              
+              <div class="affectations-list">
+                <div 
+                  *ngFor="let affectation of filterAffectationsByEntreprise(day.affectations, entreprise.id)" 
+                  class="affectation-item"
+                  [style.border-left-color]="entreprise.couleur">
+                  <div class="user-info">
+                    <span class="user-name">{{ affectation.utilisateur.prenom }} {{ affectation.utilisateur.nom }}</span>
+                    <span class="user-hours" *ngIf="affectation.heureDebut">
+                      {{ affectation.heureDebut }} - {{ affectation.heureFin }}
+                    </span>
+                  </div>
+                  <span *ngIf="affectation.isException" class="exception-badge">⚡</span>
+                </div>
+                
+                <!-- Message si aucune affectation -->
+                <div *ngIf="filterAffectationsByEntreprise(day.affectations, entreprise.id).length === 0" 
+                     class="no-affectation">
+                  Aucune affectation
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Vue Jour -->
+    <div *ngIf="viewMode === 'day'" class="day-view">
+      <div class="day-detail" *ngFor="let day of calendarDays">
+        
+        <!-- Affectations par entreprise pour le jour -->
+        <div *ngFor="let entreprise of entreprises" class="entreprise-card">
+          <div 
+            class="entreprise-header"
+            [style.background-color]="entreprise.couleur">
+            <h4>{{ entreprise.nom }}</h4>
+            <span class="affectation-count">
+              {{ filterAffectationsByEntreprise(day.affectations, entreprise.id).length }} 
+              personne{{ filterAffectationsByEntreprise(day.affectations, entreprise.id).length > 1 ? 's' : '' }}
+            </span>
+          </div>
+          
+          <div class="entreprise-content">
+            <div 
+              *ngFor="let affectation of filterAffectationsByEntreprise(day.affectations, entreprise.id)" 
+              class="affectation-detail">
+              <div class="user-avatar">
+                {{ affectation.utilisateur.prenom.charAt(0) }}{{ affectation.utilisateur.nom.charAt(0) }}
+              </div>
+              <div class="user-details">
+                <div class="user-name">{{ affectation.utilisateur.prenom }} {{ affectation.utilisateur.nom }}</div>
+                <div class="user-email">{{ affectation.utilisateur.email }}</div>
+                <div class="user-hours" *ngIf="affectation.heureDebut">
+                  <i class="pi pi-clock"></i>
+                  {{ affectation.heureDebut }} - {{ affectation.heureFin }}
+                </div>
+              </div>
+              <div class="affectation-badges">
+                <span *ngIf="affectation.isException" class="exception-badge">
+                  <i class="pi pi-bolt"></i> Exception
+                </span>
+              </div>
+            </div>
+            
+            <!-- Message si aucune affectation -->
+            <div *ngIf="filterAffectationsByEntreprise(day.affectations, entreprise.id).length === 0" 
+                 class="no-affectation-card">
+              <i class="pi pi-users"></i>
+              <p>Aucune personne assignée pour cette journée</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

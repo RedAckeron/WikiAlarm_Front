@@ -123,3 +123,221 @@
         font-size: 0.875rem;
     }
 }
+
+.today-summary-container {
+  margin-top: 20px;
+  max-width: 1000px;
+  margin-left: auto;
+  margin-right: auto;
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+
+    h6 {
+      margin: 0;
+      color: #333;
+      font-weight: 600;
+      font-size: 1em;
+      
+      i {
+        margin-right: 6px;
+        color: #007bff;
+      }
+    }
+
+    .current-date {
+      font-size: 0.85em;
+      color: #6c757d;
+      font-weight: 500;
+      text-transform: capitalize;
+    }
+
+    .pi-spinner {
+      animation: spin 1s linear infinite;
+    }
+  }
+
+  .loading-message {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: #f8fafc;
+    border-radius: 8px;
+    margin: 10px 0;
+    
+    span {
+      font-size: 14px;
+      font-weight: 500;
+    }
+  }
+
+  .employes-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 15px;
+
+    .employe-compact {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 12px;
+      background: #f8f9fa;
+      border-radius: 6px;
+      border-left: 3px solid transparent;
+      transition: all 0.2s ease;
+
+      &:hover {
+        background: #e9ecef;
+        transform: translateX(2px);
+      }
+
+      .employe-name {
+        font-weight: 600;
+        color: #333;
+        font-size: 0.9em;
+        flex: 1;
+        min-width: 120px;
+
+        &.exception {
+          color: #fd7e14;
+          position: relative;
+
+          &::after {
+            content: '⚡';
+            margin-left: 4px;
+            font-size: 0.8em;
+          }
+        }
+      }
+
+      .employe-entreprise {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 8px;
+        border-radius: 12px;
+        color: white;
+        font-size: 0.75em;
+        font-weight: 500;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        min-width: 100px;
+        justify-content: center;
+        flex: 1;
+        margin-right: 8px;
+
+        i {
+          font-size: 0.8em;
+        }
+      }
+
+      .employe-horaire {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-weight: 500;
+        color: white;
+        font-size: 0.8em;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        min-width: 85px;
+        justify-content: center;
+
+        &.exception {
+          background: linear-gradient(135deg, #fd7e14, #e55100) !important;
+          animation: pulse 2s infinite;
+        }
+
+        i {
+          font-size: 0.75em;
+        }
+      }
+    }
+  }
+
+  .no-affectations {
+    text-align: center;
+    padding: 30px 20px;
+    color: #6c757d;
+
+    i {
+      font-size: 2.5em;
+      margin-bottom: 10px;
+      opacity: 0.5;
+    }
+
+    p {
+      margin: 0;
+      font-size: 1em;
+      font-style: italic;
+    }
+  }
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.7; }
+  100% { opacity: 1; }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .today-summary-container {
+    margin-top: 15px;
+
+    .card-header {
+      flex-direction: column;
+      gap: 8px;
+      text-align: center;
+    }
+
+    .entreprises-grid {
+      .entreprise-section {
+        .employes-grid {
+          grid-template-columns: 1fr;
+          gap: 6px;
+
+          .employe-compact {
+            padding: 6px 10px;
+
+            .employe-horaire {
+              min-width: 75px;
+              font-size: 0.75em;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .today-summary-container {
+    .entreprises-grid {
+      .entreprise-section {
+        .employes-grid {
+          .employe-compact {
+            flex-direction: column;
+            gap: 4px;
+            text-align: center;
+
+            .employe-horaire {
+              min-width: auto;
+              width: 100%;
+            }
+          }
+        }
+      }
+    }
+  }
+}

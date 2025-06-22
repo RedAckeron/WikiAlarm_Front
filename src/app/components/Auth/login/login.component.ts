@@ -47,14 +47,14 @@ export class LoginComponent implements OnInit {
   
           if (data && data.Id) {
             this._tokenService.saveToken(data.Id.toString());
-            this.messageService.add({ severity: 'success', summary: 'Succès', detail: 'Connexion réussie' });
+            this.messageService.add({ severity: 'success', summary: 'Succès', detail: data.Message });
             this._router.navigate(['home']);
           } else {
-            this.messageService.add({ severity: 'error', summary: 'Erreur', detail: 'Login ou mot de passe incorrect !' });
+            this.messageService.add({ severity: 'error', summary: 'Erreur', detail: data.Message });
           }
         },
         error : (error) => {
-          this.messageService.add({ severity: 'error', summary: 'Erreur', detail: error.message || 'Une erreur est survenue lors de la connexion' });
+          this.messageService.add({ severity: 'error', summary: 'Erreur', detail: error.error?.Message || error.message || 'Une erreur est survenue lors de la connexion' });
         }
       })
     }

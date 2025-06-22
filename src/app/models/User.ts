@@ -1,23 +1,12 @@
-export class User
-{
-    Id:number;
-    email:string;
-    password:string;
-    firstName:string;
-    lastName:string;
-    dtIn:Date;
-    addByUser:number;
-    CurrentCustomer:number=0;
-    ApiMessage:string;
-    constructor(Id:number,DtIn:Date,email:string,firstName:string,lastName:string,ApiMessage:string)
-    {
-    this.Id=Id;
-    this.email=email;
-    this.password="";
-    this.firstName=firstName;
-    this.lastName=lastName;
-    this.dtIn=DtIn;
-    this.addByUser=1;
-    this.ApiMessage=ApiMessage;
-     }
+export interface User {
+    Id: number;
+    Name: string;
+    Email: string;
+    Role: string;
+    IdPortal: number | null;
+    Dtln: number | null;
+    Active: number;
+    FirstName: string | null;
+    NickName: string | null;
+    ApiKey?: string;
 }

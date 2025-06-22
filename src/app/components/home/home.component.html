@@ -1,7 +1,4 @@
 <div class="container">
-   <div class="LogoContainer">
-      <div class="Logo"></div>
-   </div>
 
    <div class="login-container" *ngIf="!isConnected">
       <p-card header="Connexion" styleClass="login-card">
@@ -60,8 +57,74 @@
       </p-card>
    </div>
 
-   <div class="WelcomeText" *ngIf="isConnected">
-      <h5>Bienvenue sur WikiAlarm</h5>
+   <div class="connected-content" *ngIf="isConnected">
+
+      <!-- Widget des affectations du jour actuel -->
+      <div class="today-summary-container">
+         <p-card>
+            <ng-template pTemplate="header">
+               <div class="card-header">
+                  <div>
+                  <h6><i class="pi pi-calendar"></i> Affectations du jour</h6>
+                  <span class="current-date">{{ currentDate }}</span>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 10px;">
+                     <button 
+                        pButton 
+                        type="button" 
+                        icon="pi pi-refresh" 
+                        size="small"
+                        severity="secondary"
+                        [disabled]="loadingToday"
+                        (click)="rechargerAffectations()"
+                        pTooltip="Recharger les affectations">
+                     </button>
+                     <button 
+                        pButton 
+                        type="button" 
+                        icon="pi pi-cog" 
+                        size="small"
+                        severity="info"
+                        (click)="testAPIDirecte()"
+                        pTooltip="Test API directe">
+                     </button>
+                     <i class="pi pi-spin pi-spinner" *ngIf="loadingToday" style="color: #007ad9;"></i>
+                  </div>
+               </div>
+            </ng-template>
+
+            <div class="loading-message" *ngIf="loadingToday">
+               <i class="pi pi-spin pi-spinner" style="font-size: 1.5rem; color: #007ad9;"></i>
+               <span style="margin-left: 10px; color: #666;">Chargement des affectations du jour...</span>
+            </div>
+
+            <div class="employes-list" *ngIf="!loadingToday && getAllEmployes().length > 0; else noAffectations">
+               <div class="employe-compact" *ngFor="let employe of getAllEmployes()">
+                  <div class="employe-name" [ngClass]="{'exception': employe.isException}">
+                     {{ employe.nom }}
+                  </div>
+                  <div class="employe-entreprise" [style.background-color]="employe.couleurEntreprise">
+                     <i class="pi pi-building"></i>
+                     {{ employe.entreprise }}
+                  </div>
+                  <div class="employe-horaire" 
+                       [style.background-color]="employe.couleurEntreprise"
+                       [ngClass]="{'exception': employe.isException}">
+                     <i class="pi pi-clock" *ngIf="!employe.isException"></i>
+                     <i class="pi pi-bolt exception-icon" *ngIf="employe.isException"></i>
+                     {{ employe.horaire }}
+                  </div>
+               </div>
+            </div>
+
+            <ng-template #noAffectations>
+               <div class="no-affectations" *ngIf="!loadingToday">
+                  <i class="pi pi-info-circle"></i>
+                  <p>Aucune affectation pour aujourd'hui</p>
+               </div>
+            </ng-template>
+         </p-card>
+      </div>
    </div>
 </div>
 

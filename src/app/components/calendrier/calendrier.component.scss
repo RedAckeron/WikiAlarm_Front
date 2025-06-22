@@ -1,0 +1,446 @@
+.calendrier-container {
+  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+  // En-tête
+  .calendrier-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #e9ecef;
+
+    .header-left {
+      h2 {
+        margin: 0;
+        color: #333;
+        font-weight: 600;
+        font-size: 1.8em;
+        
+        i {
+          margin-right: 10px;
+          color: #007bff;
+        }
+      }
+
+      .subtitle {
+        margin: 5px 0 0 0;
+        color: #6c757d;
+        font-size: 0.9em;
+      }
+    }
+
+    .header-controls {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+
+      .view-selector {
+        display: flex;
+        gap: 2px;
+        background: #f8f9fa;
+        border-radius: 6px;
+        padding: 4px;
+
+        .btn-view {
+          padding: 8px 16px;
+          border: none;
+          background: transparent;
+          border-radius: 4px;
+          cursor: pointer;
+          font-weight: 500;
+          transition: all 0.2s ease;
+          color: #6c757d;
+
+          &:hover {
+            background: #e9ecef;
+            color: #495057;
+          }
+
+          &.active {
+            background: #007bff;
+            color: white;
+            box-shadow: 0 2px 4px rgba(0, 123, 255, 0.3);
+          }
+        }
+      }
+
+      .navigation-controls {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+
+        .btn {
+          padding: 8px 12px;
+          border: 1px solid #ddd;
+          background: white;
+          border-radius: 6px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          font-size: 0.9em;
+
+          &:hover {
+            background: #f8f9fa;
+            border-color: #007bff;
+          }
+
+          &.btn-nav {
+            padding: 8px 10px;
+            
+            i {
+              font-size: 0.8em;
+            }
+          }
+
+          &.btn-today {
+            font-weight: 500;
+            color: #007bff;
+          }
+        }
+      }
+    }
+  }
+
+  // Titre de la période
+  .period-title {
+    text-align: center;
+    margin-bottom: 30px;
+
+    h3 {
+      margin: 0;
+      color: #333;
+      font-weight: 600;
+      font-size: 1.4em;
+    }
+  }
+
+  // État de chargement
+  .loading-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #6c757d;
+
+    i {
+      font-size: 2em;
+      margin-bottom: 15px;
+    }
+
+    p {
+      margin: 0;
+      font-size: 1.1em;
+    }
+  }
+
+  // Vue Semaine
+  .week-view {
+    .week-grid {
+      border: 1px solid #e9ecef;
+      border-radius: 8px;
+      overflow: hidden;
+      background: white;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+      .day-headers {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        background: #f8f9fa;
+        border-bottom: 1px solid #e9ecef;
+
+        .day-header {
+          padding: 15px 10px;
+          text-align: center;
+          border-right: 1px solid #e9ecef;
+
+          &:last-child {
+            border-right: none;
+          }
+
+          &.today {
+            background: #007bff;
+            color: white;
+          }
+
+          .day-name {
+            font-weight: 600;
+            font-size: 0.8em;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+          }
+
+          .day-number {
+            font-size: 1.2em;
+            font-weight: 700;
+          }
+        }
+      }
+
+      .days-content {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        min-height: 500px;
+
+        .day-column {
+          border-right: 1px solid #e9ecef;
+          padding: 10px 8px;
+
+          &:last-child {
+            border-right: none;
+          }
+
+          &.today {
+            background: rgba(0, 123, 255, 0.05);
+          }
+
+          .entreprise-section {
+            margin-bottom: 15px;
+
+            .entreprise-header {
+              color: white;
+              padding: 6px 10px;
+              border-radius: 4px;
+              font-size: 0.8em;
+              font-weight: 600;
+              margin-bottom: 8px;
+              text-align: center;
+
+              .entreprise-nom {
+                text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+              }
+            }
+
+            .affectations-list {
+              .affectation-item {
+                background: #f8f9fa;
+                padding: 8px 10px;
+                margin-bottom: 6px;
+                border-radius: 4px;
+                border-left: 3px solid;
+                font-size: 0.85em;
+                position: relative;
+
+                .user-info {
+                  .user-name {
+                    display: block;
+                    font-weight: 600;
+                    color: #333;
+                  }
+
+                  .user-hours {
+                    display: block;
+                    color: #6c757d;
+                    font-size: 0.9em;
+                    margin-top: 2px;
+                  }
+                }
+
+                .exception-badge {
+                  position: absolute;
+                  top: 4px;
+                  right: 6px;
+                  font-size: 0.7em;
+                }
+              }
+
+              .no-affectation {
+                color: #6c757d;
+                font-style: italic;
+                text-align: center;
+                padding: 20px 10px;
+                font-size: 0.8em;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Vue Jour
+  .day-view {
+    .day-detail {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 20px;
+
+      .entreprise-card {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+
+        .entreprise-header {
+          color: white;
+          padding: 20px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+
+          h4 {
+            margin: 0;
+            font-size: 1.2em;
+            font-weight: 600;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+          }
+
+          .affectation-count {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.85em;
+            font-weight: 500;
+          }
+        }
+
+        .entreprise-content {
+          padding: 20px;
+
+          .affectation-detail {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 15px;
+
+            .user-avatar {
+              width: 45px;
+              height: 45px;
+              background: #007bff;
+              color: white;
+              border-radius: 50%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-weight: 600;
+              font-size: 0.9em;
+            }
+
+            .user-details {
+              flex: 1;
+
+              .user-name {
+                font-weight: 600;
+                color: #333;
+                margin-bottom: 4px;
+              }
+
+              .user-email {
+                color: #6c757d;
+                font-size: 0.9em;
+                margin-bottom: 4px;
+              }
+
+              .user-hours {
+                color: #495057;
+                font-size: 0.9em;
+                display: flex;
+                align-items: center;
+                gap: 5px;
+
+                i {
+                  color: #007bff;
+                }
+              }
+            }
+
+            .affectation-badges {
+              .exception-badge {
+                background: #ffc107;
+                color: #333;
+                padding: 4px 8px;
+                border-radius: 4px;
+                font-size: 0.8em;
+                font-weight: 500;
+                display: flex;
+                align-items: center;
+                gap: 4px;
+
+                i {
+                  font-size: 0.7em;
+                }
+              }
+            }
+          }
+
+          .no-affectation-card {
+            text-align: center;
+            padding: 40px 20px;
+            color: #6c757d;
+
+            i {
+              font-size: 2em;
+              margin-bottom: 15px;
+              opacity: 0.5;
+            }
+
+            p {
+              margin: 0;
+              font-style: italic;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .calendrier-container {
+    padding: 15px;
+
+    .calendrier-header {
+      flex-direction: column;
+      gap: 15px;
+      align-items: flex-start;
+
+      .header-controls {
+        width: 100%;
+        justify-content: space-between;
+      }
+    }
+
+    .week-view {
+      .week-grid {
+        .day-headers {
+          .day-header {
+            padding: 10px 5px;
+
+            .day-name {
+              font-size: 0.7em;
+            }
+
+            .day-number {
+              font-size: 1em;
+            }
+          }
+        }
+
+        .days-content {
+          .day-column {
+            padding: 8px 4px;
+
+            .entreprise-section {
+              .affectations-list {
+                .affectation-item {
+                  font-size: 0.8em;
+                  padding: 6px 8px;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    .day-view {
+      .day-detail {
+        grid-template-columns: 1fr;
+      }
+    }
+  }
+}

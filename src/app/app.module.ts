@@ -21,6 +21,7 @@ import { DialogModule } from 'primeng/dialog';
 import { TableModule } from 'primeng/table';
 import { DropdownModule } from 'primeng/dropdown';
 import { InputNumberModule } from 'primeng/inputnumber';
+import { CheckboxModule } from 'primeng/checkbox';
 import { TestComponent } from './components/test/test.component';
 import { ProfilComponent } from './components/profil/profil.component';
 import { IntrusionComponent } from './components/Wiki/intrusion/intrusion.component';
@@ -31,7 +32,7 @@ import { StockComponent } from './components/profil/stock/stock.component';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { CardModule } from 'primeng/card';
 import { PasswordModule } from 'primeng/password';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import { HomeModule } from './components/home/home.module';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { RegisterModule } from './components/Auth/register/register.module';
@@ -46,6 +47,7 @@ import { ItemModule } from './components/Admin/item/item.module';
 import { TypeMaterielModule } from './components/Admin/item/type-materiel.module';
 import { VehiculeModule } from './components/profil/vehicule/vehicule.module';
 import { CalendrierComponent } from './components/calendrier/calendrier.component';
+import { CalendrierComponent as AdminCalendrierComponent } from './components/Admin/calendrier/calendrier.component';
 
 @NgModule({
   schemas:[CUSTOM_ELEMENTS_SCHEMA],
@@ -61,7 +63,8 @@ import { CalendrierComponent } from './components/calendrier/calendrier.componen
     ItemComponent,
     StockUserComponent,
     StockCarComponent,
-    CalendrierComponent
+    CalendrierComponent,
+    AdminCalendrierComponent
   ],
   imports: [
     BrowserModule,
@@ -84,6 +87,7 @@ import { CalendrierComponent } from './components/calendrier/calendrier.componen
     TableModule,
     DropdownModule,
     InputNumberModule,
+    CheckboxModule,
     CardModule,
     PasswordModule,
     HomeModule,
@@ -99,7 +103,7 @@ import { CalendrierComponent } from './components/calendrier/calendrier.componen
     CtrlaccesComponent,
     CctvComponent
   ],
-  providers: [MessageService, ConfirmationService],
+  providers: [MessageService, ConfirmationService, DatePipe],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

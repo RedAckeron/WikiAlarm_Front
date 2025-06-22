@@ -1,4 +1,184 @@
 .profile-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+
+    .card {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+
+        h2 {
+            color: #1f2937;
+            font-size: 1.8rem;
+            margin-bottom: 24px;
+            font-weight: 700;
+        }
+
+        .user-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 32px;
+
+            .info-group {
+                background: #f8fafc;
+                padding: 16px;
+                border-radius: 8px;
+                border: 1px solid #e2e8f0;
+
+                label {
+                    color: #64748b;
+                    font-size: 0.9rem;
+                    margin-bottom: 8px;
+                    display: block;
+                }
+
+                p {
+                    color: #1f2937;
+                    font-size: 1.1rem;
+                    font-weight: 500;
+                    margin: 0;
+                    display: flex;
+                    align-items: center;
+
+                    &.active {
+                        color: #059669;
+                        
+                        i {
+                            color: #059669;
+                        }
+                    }
+
+                    &.inactive {
+                        color: #dc2626;
+                        
+                        i {
+                            color: #dc2626;
+                        }
+                    }
+
+                    i {
+                        transition: all 0.3s ease;
+                    }
+                }
+            }
+        }
+
+        .edit-form {
+            margin-bottom: 32px;
+
+            .field {
+                margin-bottom: 20px;
+
+                label {
+                    color: #374151;
+                    font-weight: 500;
+                    margin-bottom: 8px;
+                    display: block;
+                }
+
+                input {
+                    width: 100%;
+                    padding: 10px;
+                    border: 1px solid #d1d5db;
+                    border-radius: 6px;
+                    font-size: 1rem;
+
+                    &:focus {
+                        border-color: #3b82f6;
+                        box-shadow: 0 0 0 2px rgba(59,130,246,0.1);
+                    }
+
+                    &.ng-invalid.ng-dirty {
+                        border-color: #dc2626;
+                    }
+                }
+
+                .p-error {
+                    color: #dc2626;
+                    font-size: 0.875rem;
+                    margin-top: 4px;
+                    display: block;
+                }
+            }
+
+            .button-container {
+                display: flex;
+                gap: 12px;
+                justify-content: flex-end;
+                margin-top: 24px;
+            }
+        }
+
+        .actions {
+            margin: 24px 0;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .password-section {
+            border-top: 1px solid #e2e8f0;
+            padding-top: 24px;
+            margin-top: 24px;
+
+            h3 {
+                color: #1f2937;
+                font-size: 1.4rem;
+                margin-bottom: 20px;
+                font-weight: 600;
+            }
+
+            .field {
+                margin-bottom: 20px;
+
+                label {
+                    color: #374151;
+                    font-weight: 500;
+                    margin-bottom: 8px;
+                    display: block;
+                }
+
+                input {
+                    width: 100%;
+                    padding: 10px;
+                    border: 1px solid #d1d5db;
+                    border-radius: 6px;
+                    font-size: 1rem;
+
+                    &:focus {
+                        border-color: #3b82f6;
+                        box-shadow: 0 0 0 2px rgba(59,130,246,0.1);
+                    }
+
+                    &.ng-invalid.ng-dirty {
+                        border-color: #dc2626;
+                    }
+                }
+
+                .p-error {
+                    color: #dc2626;
+                    font-size: 0.875rem;
+                    margin-top: 4px;
+                    display: block;
+                }
+            }
+
+            .button-container {
+                margin-top: 24px;
+                display: flex;
+                justify-content: flex-end;
+
+                button {
+                    min-width: 200px;
+                }
+            }
+        }
+    }
+}
+
+.profile-container {
     display: flex;
     justify-content: center;
     align-items: center;

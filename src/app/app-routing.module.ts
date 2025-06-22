@@ -47,6 +47,7 @@ const routes: Routes = [
       {path : '', component : LobbyComponent, canActivate: [AuthGuard]},
       {path : 'gestion-utilisateur', loadChildren: () => import('./components/Admin/user/user.module').then(m => m.UserModule), canActivate: [AuthGuard]},
       {path : 'gestion-vehicule', loadChildren: () => import('./components/Admin/car/car.module').then(m => m.CarModule), canActivate: [AuthGuard]},
+      {path : 'gestion-entreprise', loadChildren: () => import('./components/Admin/entreprise/entreprise.module').then(m => m.EntrepriseModule), canActivate: [AuthGuard]},
       {path : 'gestion-item', component : ItemComponent, canActivate: [AuthGuard]},
       {path : 'gestion-item/add', component : ItemAddComponent, canActivate: [AuthGuard]},
       {path : 'stock-vehicule', component : StockCarComponent, canActivate: [AuthGuard]},

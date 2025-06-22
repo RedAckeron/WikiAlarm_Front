@@ -99,6 +99,7 @@ logout()
           {separator: true},
           {label: 'Gestion Utilisateur', icon: 'pi pi-user-plus', routerLink: ['/Admin/gestion-utilisateur']},
           {label: 'Gestion Véhicule', icon: 'pi pi-car', routerLink: ['/Admin/gestion-vehicule']},
+          {label: 'Gestion Entreprise', icon: 'pi pi-building', routerLink: ['/Admin/gestion-entreprise']},
           {separator: true},
           {label: 'Gestion Item', icon: 'pi pi-box', routerLink: ['/Admin/gestion-item']},
           {label: 'Type de matériel', icon: 'pi pi-cog', routerLink: ['/Admin/type-materiel']},

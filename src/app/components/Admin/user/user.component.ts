@@ -18,6 +18,12 @@ export class UserComponent implements OnInit {
   currentUser: any = null;
   selectedUser: any = null;
 
+  roles: string[] = ['User', 'Admin'];
+  statuts = [
+    { label: 'Actif', value: 1 },
+    { label: 'Inactif', value: 0 }
+  ];
+
   constructor(
     private userService: UserService,
     private fb: FormBuilder,
@@ -27,8 +33,12 @@ export class UserComponent implements OnInit {
   ) {
     this.userForm = this.fb.group({
       name: ['', Validators.required],
+      firstName: [''],
+      nickName: ['', [Validators.maxLength(4)]],
       email: ['', [Validators.required, Validators.email]],
-      password: [''] // Pas de validation par défaut, sera géré dynamiquement
+      role: ['User', Validators.required],
+      password: [''],
+      active: [1]
     });
   }
 
@@ -40,8 +50,7 @@ export class UserComponent implements OnInit {
     this.userService.getUsers().subscribe({
       next: (response) => {
         if (response && response.JsonResult) {
-          // S'assurer que les données sont correctement mises à jour
-          this.users = [...response.JsonResult]; // Créer une nouvelle référence pour forcer la détection de changement
+          this.users = [...response.JsonResult];
         }
       },
       error: (error) => {
@@ -57,9 +66,11 @@ export class UserComponent implements OnInit {
   showAddUserDialog(): void {
     this.isEditMode = false;
     this.currentUser = null;
-    this.userForm.reset();
-    // En mode création, pas de validation de mot de passe
-    this.userForm.get('password')?.clearValidators();
+    this.userForm.reset({
+      role: 'User',
+      active: 1
+    });
+    this.userForm.get('password')?.setValidators([Validators.required, Validators.minLength(6)]);
     this.userForm.get('password')?.updateValueAndValidity();
     this.showDialog = true;
   }
@@ -69,11 +80,15 @@ export class UserComponent implements OnInit {
     this.currentUser = user;
     this.userForm.patchValue({
       name: user.Name,
+      firstName: user.FirstName,
+      nickName: user.NickName,
       email: user.Email,
-      password: '' // On laisse vide pour modification
+      role: user.Role,
+      active: user.Active,
+      password: ''
     });
-    // En mode édition, le mot de passe est optionnel avec validation si renseigné
-    this.userForm.get('password')?.setValidators([Validators.minLength(6)]);
+    this.userForm.get('password')?.clearValidators();
+    this.userForm.get('password')?.setValidators(Validators.minLength(6));
     this.userForm.get('password')?.updateValueAndValidity();
     this.showDialog = true;
   }
@@ -83,36 +98,44 @@ export class UserComponent implements OnInit {
     this.userForm.reset();
     this.currentUser = null;
     this.isEditMode = false;
-    // Remettre la validation du mot de passe
-    this.userForm.get('password')?.setValidators([Validators.required, Validators.minLength(6)]);
-    this.userForm.get('password')?.updateValueAndValidity();
   }
 
   saveUser(): void {
     if (this.userForm.valid) {
       const userData: any = {
         Name: this.userForm.value.name,
-        Email: this.userForm.value.email
+        FirstName: this.userForm.value.firstName,
+        NickName: this.userForm.value.nickName,
+        Email: this.userForm.value.email,
+        Role: this.userForm.value.role,
+        ApiKey: sessionStorage.getItem('apiKey')
       };
 
-      // Ajouter le mot de passe seulement s'il est renseigné
       if (this.userForm.value.password) {
         userData.Password = this.userForm.value.password;
       }
 
-      if (this.isEditMode && this.currentUser) {
-        // Mise à jour
+      if (this.isEditMode) {
+        userData.Active = this.userForm.value.active;
+        
         this.userService.updateUser(this.currentUser.Id, userData).subscribe({
           next: (response) => {
-            this.messageService.add({
-              severity: 'success',
-              summary: 'Succès',
-              detail: 'Utilisateur modifié avec succès'
-            });
-            this.hideDialog();
-            this.loadUsers();
-            // Notifier les autres composants
-            this.userNotificationService.notifyUserUpdate();
+            if (response.Status === 200) {
+              this.messageService.add({
+                severity: 'success',
+                summary: 'Succès',
+                detail: 'Utilisateur modifié avec succès'
+              });
+              this.hideDialog();
+              this.loadUsers();
+              this.userNotificationService.notifyUserUpdate();
+            } else {
+              this.messageService.add({
+                severity: 'error',
+                summary: 'Erreur',
+                detail: response.Message || 'Erreur lors de la modification'
+              });
+            }
           },
           error: (error) => {
             this.messageService.add({
@@ -124,35 +147,24 @@ export class UserComponent implements OnInit {
         });
       } else {
         // Création d'utilisateur
-        const apiKey = sessionStorage.getItem('apiKey');
-        
-        if (!apiKey) {
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Erreur',
-            detail: 'Clé API manquante. Veuillez vous reconnecter.'
-          });
-          return;
-        }
-        
-        const createData = {
-          ApiKey: apiKey,
-          Name: userData.Name,
-          Email: userData.Email,
-          Password: 'WikiAlarm'
-        };
-        
-        this.userService.createUser(createData).subscribe({
+        this.userService.createUser(userData).subscribe({
           next: (response) => {
-            this.messageService.add({
-              severity: 'success',
-              summary: 'Succès',
-              detail: 'Utilisateur créé avec succès'
-            });
-            this.hideDialog();
-            this.loadUsers();
-            // Notifier les autres composants
-            this.userNotificationService.notifyUserUpdate();
+            if (response.Status === 200) {
+              this.messageService.add({
+                severity: 'success',
+                summary: 'Succès',
+                detail: 'Utilisateur créé avec succès'
+              });
+              this.hideDialog();
+              this.loadUsers();
+              this.userNotificationService.notifyUserUpdate();
+            } else {
+              this.messageService.add({
+                severity: 'error',
+                summary: 'Erreur',
+                detail: response.Message || 'Erreur lors de la création'
+              });
+            }
           },
           error: (error) => {
             this.messageService.add({

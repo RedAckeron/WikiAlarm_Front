@@ -77,16 +77,41 @@
     
     <form [formGroup]="userForm" (ngSubmit)="saveUser()">
         <div class="p-fluid">
-            <div class="p-field">
+            <div class="p-field mb-3">
                 <label for="name">Nom *</label>
                 <input 
                     pInputText 
                     id="name" 
                     formControlName="name" 
                     placeholder="Ex: Jean Dupont">
+                <small class="p-error" *ngIf="userForm.get('name')?.invalid && userForm.get('name')?.touched">
+                    Le nom est requis
+                </small>
             </div>
             
-            <div class="p-field">
+            <div class="p-field mb-3">
+                <label for="firstName">Prénom</label>
+                <input 
+                    pInputText 
+                    id="firstName" 
+                    formControlName="firstName" 
+                    placeholder="Ex: Jean">
+            </div>
+
+            <div class="p-field mb-3">
+                <label for="nickName">Surnom (max 4 caractères)</label>
+                <input 
+                    pInputText 
+                    id="nickName" 
+                    formControlName="nickName" 
+                    maxlength="4"
+                    placeholder="Ex: JD">
+                <small class="p-error" *ngIf="userForm.get('nickName')?.errors?.['maxlength']">
+                    Le surnom ne doit pas dépasser 4 caractères
+                </small>
+            </div>
+            
+            <div class="p-field mb-3">
                 <label for="email">Email *</label>
                 <input 
                     pInputText 
@@ -94,22 +119,53 @@
                     formControlName="email" 
                     type="email"
                     placeholder="Ex: jean.dupont@email.com">
+                <small class="p-error" *ngIf="userForm.get('email')?.invalid && userForm.get('email')?.touched">
+                    Email invalide
+                </small>
+            </div>
+
+            <div class="p-field mb-3">
+                <label for="role">Rôle *</label>
+                <p-dropdown
+                    id="role"
+                    formControlName="role"
+                    [options]="roles"
+                    placeholder="Sélectionnez un rôle">
+                </p-dropdown>
+                <small class="p-error" *ngIf="userForm.get('role')?.invalid && userForm.get('role')?.touched">
+                    Le rôle est requis
+                </small>
             </div>
             
-            <!-- Champ mot de passe seulement en mode édition -->
-            <div class="p-field" *ngIf="isEditMode">
-                <label for="password">Nouveau mot de passe (optionnel)</label>
+            <!-- Champ mot de passe -->
+            <div class="p-field mb-3">
+                <label for="password">{{isEditMode ? 'Nouveau mot de passe (optionnel)' : 'Mot de passe *'}}</label>
                 <p-password 
                     id="password" 
                     formControlName="password"
                     [toggleMask]="true"
                     [feedback]="true"
-                    promptLabel="Nouveau mot de passe"
+                    promptLabel="Entrez un mot de passe"
                     weakLabel="Trop simple"
                     mediumLabel="Moyen"
                     strongLabel="Complexe"
-                    placeholder="Laissez vide pour conserver l'ancien">
+                    [placeholder]="isEditMode ? 'Laissez vide pour conserver l\'ancien' : 'Entrez un mot de passe'">
                 </p-password>
+                <small class="p-error" *ngIf="userForm.get('password')?.invalid && userForm.get('password')?.touched">
+                    <span *ngIf="userForm.get('password')?.errors?.['required']">Le mot de passe est requis</span>
+                    <span *ngIf="userForm.get('password')?.errors?.['minlength']">Le mot de passe doit contenir au moins 6 caractères</span>
+                </small>
+            </div>
+
+            <div class="p-field mb-3" *ngIf="isEditMode">
+                <label for="active">Statut</label>
+                <p-dropdown
+                    id="active"
+                    formControlName="active"
+                    [options]="statuts"
+                    optionLabel="label"
+                    optionValue="value">
+                </p-dropdown>
             </div>
         </div>
         
