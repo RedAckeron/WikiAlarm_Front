@@ -1,416 +1,674 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
-import { StockService } from '../../../../services/stock.service';
+import { ActivatedRoute, Router } from '@angular/router';
+import { MessageService } from 'primeng/api';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { StockService } from '../../../../services/stock.service';
 import { HardwareTypeService, HardwareType } from '../../../../services/hardwaretype.service';
 import { ItemService, Item } from '../../../../services/item.service';
-import { MessageService } from 'primeng/api';
+import { finalize } from 'rxjs/operators';
+import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
+
+interface StockItem {
+  id: string;
+  Label: string;
+  Qt: number;
+}
+
+interface MaterialType {
+  Id: number;
+  Name: string;
+  Description: string;
+}
+
+interface ItemOption {
+  Id: string;
+  Name: string;
+  Description: string | null;
+}
 
 @Component({
   selector: 'app-vehicule-stock',
   template: `
-    <div class="card mb-3">
-      <div class="card-header d-flex justify-content-between align-items-center">
-        <h5 class="mb-0">Stock du véhicule</h5>
-        <button class="btn btn-success btn-sm" (click)="displayAddDialog = true">
-          <i class="pi pi-plus"></i> Ajouter un item
-        </button>
+    <div class="stock-container">
+      <div class="header">
+        <h2>Stock du véhicule</h2>
+        <button pButton type="button" 
+                icon="pi pi-plus" 
+                label="Ajouter un article"
+                class="p-button-success" 
+                (click)="openAddDialog()"></button>
       </div>
-      <div class="card-body">
-        <ng-container *ngIf="loading; else stockContent">
-          <div class="text-center">
-            <i class="pi pi-spin pi-spinner" style="font-size: 2rem;"></i>
-            <span>Chargement du stock...</span>
+
+      <div *ngIf="loading" class="loading-container">
+        <p-progressSpinner></p-progressSpinner>
+      </div>
+
+      <div *ngIf="!loading" class="content">
+        <p-table [value]="stockItems" [tableStyle]="{ 'min-width': '50rem' }">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Article</th>
+              <th style="width: 150px">Quantité</th>
+              <th style="width: 100px">Actions</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-item>
+            <tr>
+              <td>{{item.Label}}</td>
+              <td class="text-center">{{item.Qt}}</td>
+              <td>
+                <button pButton type="button" 
+                        icon="pi pi-minus" 
+                        class="p-button-danger p-button-rounded p-button-text"
+                        [disabled]="item.Qt <= 0"
+                        (click)="openRemoveDialog(item)"></button>
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td colspan="3" class="text-center p-4">
+                Aucun article dans le stock
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+
+      <!-- Dialog d'ajout -->
+      <p-dialog 
+        [(visible)]="showAddDialog" 
+        [header]="'Ajouter un article'"
+        [modal]="true"
+        [style]="{width: '650px', minHeight: '400px'}"
+        [contentStyle]="{overflow: 'visible'}"
+        [baseZIndex]="10000"
+        [draggable]="false"
+        [resizable]="false"
+        [closable]="!adding">
+        <div class="p-fluid dialog-content">
+          <div class="field">
+            <label for="materialType">Type de matériel</label>
+            <p-dropdown 
+              id="materialType" 
+              [options]="materialTypes" 
+              [(ngModel)]="selectedType"
+              (ngModelChange)="onTypeChange()"
+              optionLabel="Name"
+              [filter]="true"
+              [filterBy]="'Name'"
+              [showClear]="true"
+              placeholder="Sélectionner un type de matériel"
+              [disabled]="adding"
+              [autoDisplayFirst]="false"
+              styleClass="w-full"
+              [panelStyle]="{minWidth: '100%'}"
+              appendTo="body">
+              <ng-template pTemplate="item" let-type>
+                <div class="type-item">
+                  <div class="type-label">{{type.Name}}</div>
+                  <div class="type-description text-muted">{{type.Description}}</div>
+                </div>
+              </ng-template>
+            </p-dropdown>
           </div>
-        </ng-container>
-        <ng-template #stockContent>
-          <div *ngIf="stockItems.length === 0" class="alert alert-info text-center">
-            <i class="pi pi-info-circle"></i>
-            {{ stockMessage }}
+
+          <div class="field" *ngIf="selectedType">
+            <label for="article">Article</label>
+            <p-dropdown 
+              id="article" 
+              [options]="availableItems" 
+              [(ngModel)]="selectedAddItem"
+              optionLabel="Name"
+              [filter]="true"
+              [filterBy]="'Name'"
+              [showClear]="true"
+              placeholder="Sélectionner un article"
+              [disabled]="adding"
+              [autoDisplayFirst]="false"
+              styleClass="w-full"
+              [panelStyle]="{minWidth: '100%'}"
+              appendTo="body">
+              <ng-template pTemplate="item" let-item>
+                <div class="item-info">
+                  <div class="item-name">{{item.Name}}</div>
+                  <div class="item-description text-muted">{{item.Description}}</div>
+                </div>
+              </ng-template>
+            </p-dropdown>
           </div>
-          <div *ngIf="stockItems.length > 0" class="table-responsive">
-            <table class="table table-striped table-hover mb-0">
-              <thead>
-                <tr>
-                  <th>Article</th>
-                  <th class="text-end">Quantité</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let item of stock">
-                  <td>{{ item.ItemName }}</td>
-                  <td>{{ item.Qt }}</td>
-                </tr>
-              </tbody>
-            </table>
+
+          <div class="field" *ngIf="selectedAddItem">
+            <label for="addQuantity">Quantité</label>
+            <p-inputNumber 
+              id="addQuantity" 
+              [(ngModel)]="addQuantity"
+              [min]="1" 
+              [max]="999"
+              [showButtons]="true"
+              buttonLayout="horizontal"
+              spinnerMode="horizontal"
+              [step]="1"
+              [disabled]="adding"
+              styleClass="w-full"
+              inputStyleClass="text-center">
+            </p-inputNumber>
+          </div>
+        </div>
+
+        <ng-template pTemplate="footer">
+          <div class="dialog-footer">
+            <button pButton 
+                    label="Annuler" 
+                    icon="pi pi-times" 
+                    class="p-button-text" 
+                    (click)="onCancelAdd()"
+                    [disabled]="adding"></button>
+            <button pButton 
+                    label="Ajouter" 
+                    icon="pi pi-check" 
+                    class="p-button-success" 
+                    (click)="onConfirmAdd()"
+                    [loading]="adding"
+                    [disabled]="!isAddValid()"></button>
           </div>
         </ng-template>
-      </div>
-    </div>
+      </p-dialog>
 
-    <!-- Section mouvements de stock -->
-    <div class="card">
-      <div class="card-header d-flex justify-content-between align-items-center">
-        <h6 class="mb-0">Derniers mouvements de stock</h6>
-        <button class="btn btn-outline-info btn-sm" (click)="displayHistoryDialog = true">
-          <i class="pi pi-history"></i> Voir tout l'historique
-        </button>
-      </div>
-      <div class="card-body p-0">
-        <div *ngIf="loadingHistory" class="text-center p-3">
-          <i class="pi pi-spin pi-spinner" style="font-size: 1.2rem;"></i>
-          <span class="ms-2">Chargement de l'historique...</span>
-        </div>
-        <div *ngIf="!loadingHistory && stockHistory.length === 0" class="text-center p-3">
-          <i class="pi pi-info-circle"></i>
-          <span class="ms-2">Aucun mouvement récent</span>
-        </div>
-        <div *ngIf="!loadingHistory && stockHistory.length > 0" class="list-group list-group-flush">
-          <div *ngFor="let entry of stockHistory.slice(0, 5)" class="list-group-item">
-            <div class="d-flex justify-content-between align-items-center">
-              <small class="text-muted">{{ entry.date | date:'dd/MM/yyyy HH:mm' }}</small>
-              <span [ngClass]="{'text-success': entry.type === 'ajouté', 'text-danger': entry.type === 'retiré'}">
-                {{ entry.type === 'ajouté' ? '+' : '-' }}{{ entry.quantity }}
-              </span>
-            </div>
-            <div class="fw-bold">{{ entry.item }}</div>
-            <div class="small">{{ entry.commentaire }}</div>
+      <!-- Dialog de retrait -->
+      <p-dialog 
+        [(visible)]="showRemoveDialog" 
+        [header]="'Retirer ' + (selectedItem?.Label || '')"
+        [modal]="true"
+        [style]="{width: '450px'}"
+        [closable]="!removing">
+        <div class="p-fluid">
+          <div class="field">
+            <label for="quantity">Quantité à retirer</label>
+            <p-inputNumber 
+              [(ngModel)]="removeQuantity"
+              [min]="1"
+              [max]="selectedItem?.Qt || 0"
+              [showButtons]="true"
+              buttonLayout="horizontal"
+              spinnerMode="horizontal"
+              inputId="quantity"
+              [step]="1"
+              [disabled]="removing">
+            </p-inputNumber>
+          </div>
+
+          <div class="field">
+            <label for="client">Nom du client *</label>
+            <input pInputText 
+                   id="client" 
+                   type="text" 
+                   [(ngModel)]="clientName"
+                   [disabled]="removing"
+                   placeholder="Entrez le nom du client">
           </div>
         </div>
-      </div>
+
+        <ng-template pTemplate="footer">
+          <button pButton 
+                  label="Annuler" 
+                  icon="pi pi-times" 
+                  class="p-button-text" 
+                  (click)="cancelRemove()"
+                  [disabled]="removing"></button>
+          <button pButton 
+                  label="Retirer" 
+                  icon="pi pi-check" 
+                  class="p-button-danger" 
+                  (click)="confirmRemove()"
+                  [loading]="removing"
+                  [disabled]="!isRemoveValid()"></button>
+        </ng-template>
+      </p-dialog>
     </div>
-
-    <!-- Popup ajout d'item -->
-    <p-dialog [(visible)]="displayAddDialog" [style]="{width: '400px'}" header="Ajouter un item au stock" [modal]="true" [draggable]="false" [resizable]="false">
-      <form [formGroup]="addForm" (ngSubmit)="submitAddItem()">
-        <div class="mb-3">
-          <label for="hardwareType" class="form-label">Type de matériel</label>
-          <select class="form-select" id="hardwareType" formControlName="hardwareType" (change)="onHardwareTypeChange($event)">
-            <option value="">Sélectionnez un type</option>
-            <option *ngFor="let type of hardwareTypes" [value]="type.Id">{{ type.Name }}</option>
-          </select>
-        </div>
-        <div class="mb-3" *ngIf="addForm.value.hardwareType">
-          <label for="itemSearch" class="form-label">Rechercher un article</label>
-          <input type="text" class="form-control mb-2" id="itemSearch" [(ngModel)]="itemSearch" (ngModelChange)="onItemSearchChange()" [ngModelOptions]="{standalone: true}" name="itemSearch" placeholder="Tapez pour filtrer...">
-          <label for="item" class="form-label">Article</label>
-          <p-dropdown
-            [options]="filteredItems"
-            [(ngModel)]="selectedItem"
-            [ngModelOptions]="{standalone: true}"
-            optionLabel="Name"
-            placeholder="Sélectionnez un article"
-            [showClear]="true"
-            class="mt-2">
-            <ng-template let-item pTemplate="item">
-              <div>{{ item.Name }}</div>
-            </ng-template>
-          </p-dropdown>
-        </div>
-        <div class="mb-3" *ngIf="addForm.value.hardwareType && selectedItem">
-          <label for="quantity" class="form-label">Quantité</label>
-          <select class="form-select" id="quantity" formControlName="quantity">
-            <option *ngFor="let q of quantityOptions" [value]="q">{{ q }}</option>
-          </select>
-        </div>
-        <div class="text-end">
-          <button type="button" class="btn btn-secondary me-2" (click)="displayAddDialog = false">Annuler</button>
-          <button type="submit" class="btn btn-success" [disabled]="addForm.invalid">Ajouter</button>
-        </div>
-      </form>
-    </p-dialog>
-
-    <!-- Popup historique complet -->
-    <p-dialog [(visible)]="displayHistoryDialog" [style]="{width: '500px'}" header="Historique complet du stock" [modal]="true" [draggable]="false" [resizable]="false">
-      <div *ngIf="loadingHistory" class="text-center p-3">
-        <i class="pi pi-spin pi-spinner" style="font-size: 1.2rem;"></i>
-        <span class="ms-2">Chargement de l'historique...</span>
-      </div>
-      <div *ngIf="!loadingHistory && stockHistory.length === 0" class="text-center p-3">
-        <i class="pi pi-info-circle"></i>
-        <span class="ms-2">Aucun mouvement enregistré</span>
-      </div>
-      <div *ngIf="!loadingHistory && stockHistory.length > 0" class="list-group list-group-flush">
-        <div *ngFor="let entry of stockHistory" class="list-group-item">
-          <div class="d-flex justify-content-between align-items-center">
-            <small class="text-muted">{{ entry.date | date:'dd/MM/yyyy HH:mm' }}</small>
-            <span [ngClass]="{'text-success': entry.type === 'ajouté', 'text-danger': entry.type === 'retiré'}">
-              {{ entry.type === 'ajouté' ? '+' : '-' }}{{ entry.quantity }}
-            </span>
-          </div>
-          <div class="fw-bold">{{ entry.item }}</div>
-          <div class="small">{{ entry.commentaire }}</div>
-        </div>
-      </div>
-    </p-dialog>
-
-    <!-- Popup retrait -->
-    <p-dialog [(visible)]="displayRetraitDialog" [style]="{width: '400px'}" header="Retirer du stock" [modal]="true" [draggable]="false" [resizable]="false">
-      <form [formGroup]="retraitForm" (ngSubmit)="submitRetrait()">
-        <div class="mb-3">
-          <label for="quantity" class="form-label">Quantité</label>
-          <select class="form-select" id="quantity" formControlName="quantity">
-            <option *ngFor="let q of retraitQuantities" [value]="q">{{ q }}</option>
-          </select>
-        </div>
-        <div class="mb-3">
-          <label for="client" class="form-label">Client</label>
-          <input type="text" class="form-control" id="client" formControlName="client" placeholder="Nom du client">
-        </div>
-        <div class="text-end">
-          <button type="button" class="btn btn-secondary me-2" (click)="displayRetraitDialog = false">Annuler</button>
-          <button type="submit" class="btn btn-success" [disabled]="retraitForm.invalid">Retirer</button>
-        </div>
-      </form>
-    </p-dialog>
-  `
+  `,
+  styles: [`
+    .stock-container {
+      padding: 1.5rem;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+    .header h2 {
+      margin: 0;
+    }
+    .loading-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 200px;
+    }
+    .text-center {
+      text-align: center;
+    }
+    .field {
+      margin-bottom: 1.5rem;
+    }
+    .field:last-child {
+      margin-bottom: 0;
+    }
+    .field label {
+      display: block;
+      margin-bottom: 0.5rem;
+    }
+    .type-item, .item-info {
+      padding: 0.5rem 0;
+    }
+    .type-label, .item-name {
+      font-weight: 500;
+      margin-bottom: 0.25rem;
+    }
+    .type-description, .item-description {
+      font-size: 0.875rem;
+      color: #666;
+    }
+    .text-muted {
+      color: #6c757d;
+    }
+  `]
 })
 export class VehiculeStockComponent implements OnInit {
-  vehiculeId: number = 0;
-  stockItems: any[] = [];
-  loading: boolean = false;
-  stockMessage = '';
+  public loading = false;
+  public stockItems: StockItem[] = [];
+  public stockHistory: any[] = [];
+  public vehicleId = '';
+  public displayAddDialog = false;
+  public displayHistoryDialog = false;
+  public displayRetraitDialog = false;
+  public retraitForm: FormGroup;
+  public retraitQuantities: number[] = [1, 2, 3, 4, 5, 10, 15, 20];
+  
+  public materialTypes: MaterialType[] = [];
+  public availableItems: ItemOption[] = [];
+  public selectedType: MaterialType | null = null;
+  public selectedItem: StockItem | null = null;
+  public addQuantity: number = 1;
+  public filteredItems: Item[] = [];
+  public removing = false;
+  public showRemoveDialog = false;
+  public removeQuantity = 1;
+  public clientName = '';
 
-  displayAddDialog = false;
-  addForm: FormGroup;
-
-  displayHistoryDialog = false;
-  stockHistory: any[] = [];
-  loadingHistory = false;
-
-  hardwareTypes: HardwareType[] = [];
-  items: Item[] = [];
-  filteredItems: Item[] = [];
-  selectedHardwareType: number | null = null;
-  selectedItem: Item | null = null;
-  itemSearch = '';
-
-  quantityOptions: number[] = Array.from({length: 100}, (_, i) => i + 1);
-
-  stock: any[] = [];
-  loadingStock = false;
-
-  displayRetraitDialog = false;
-  selectedStockItem: any = null;
-  retraitQuantities: number[] = [];
-  retraitForm: FormGroup;
-
-  isLoadingHistorique: boolean = true;
+  // Variables pour le dialogue d'ajout
+  public adding = false;
+  public showAddDialog = false;
+  public selectedAddItem: ItemOption | null = null;
 
   constructor(
     private route: ActivatedRoute,
+    private router: Router,
+    private messageService: MessageService,
+    private formBuilder: FormBuilder,
     private stockService: StockService,
     private hardwareTypeService: HardwareTypeService,
     private itemService: ItemService,
-    private fb: FormBuilder,
-    private messageService: MessageService
+    private dialogService: DialogService
   ) {
-    this.addForm = this.fb.group({
-      hardwareType: ['', Validators.required],
-      quantity: [1, [Validators.required, Validators.min(1)]]
-    });
-    this.retraitForm = this.fb.group({
-      quantity: [1, [Validators.required, Validators.min(1)]],
-      client: ['', Validators.required]
+    this.retraitForm = this.formBuilder.group({
+      quantity: ['', Validators.required],
+      client: ['', Validators.required],
+      notes: ['']
     });
   }
 
-  ngOnInit(): void {
-    this.initForm();
-    this.loadItems();
-    setTimeout(() => this.loadStock(this.vehiculeId), 200);
-    this.loadStockHistory();
-    this.isLoadingHistorique = true;
-  }
-
-  initForm() {
-    this.vehiculeId = Number(this.route.snapshot.paramMap.get('id'));
-    if (this.vehiculeId) {
-      this.loading = true;
-      this.stockService.getStockByCar(this.vehiculeId).subscribe({
-        next: (res) => {
-          this.stockItems = res.JsonResult || [];
-          this.loading = false;
-          this.stockMessage = this.stockItems.length === 0 ? (res.Message || 'Aucun stock disponible pour ce véhicule.') : '';
-        },
-        error: (_) => {
-          this.stockItems = [];
-          this.loading = false;
-          this.stockMessage = 'Erreur lors du chargement du stock.';
-        }
+  public ngOnInit(): void {
+    const vehicleId = this.route.snapshot.paramMap.get('id');
+    if (!vehicleId) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Erreur',
+        detail: 'ID du véhicule manquant'
       });
-    } else {
-      this.stockItems = [];
-      this.loading = false;
-      this.stockMessage = 'Aucun véhicule sélectionné.';
+      this.router.navigate(['/profil/vehicule']);
+      return;
     }
+    this.vehicleId = vehicleId;
+    this.loadStockData();
     this.loadHardwareTypes();
   }
 
-  loadStockHistory(): void {
-    this.isLoadingHistorique = true;
-    this.stockService.getHistoryByCar(this.vehiculeId).subscribe({
-      next: (res: any) => {
-        this.stockHistory = (res.JsonResult || []).map((entry: any) => {
-          const q = Number(entry.Qtt ?? entry.Qt);
-          return {
-            date: new Date(Number(entry.DtIn) * 1000),
-            item: this.getItemNameById(entry.IdItem),
-            quantity: Math.abs(q),
-            type: q > 0 ? 'ajouté' : 'retiré',
-            commentaire: entry.Remarque || ''
-          };
-        });
-        this.isLoadingHistorique = false;
-      },
-      error: (_: any) => {
-        this.stockHistory = [];
-        this.isLoadingHistorique = false;
-      }
-    });
-  }
-
-  getItemNameById(idItem: string): string {
-    const item = this.items.find(i => i.id === idItem);
-    return item ? item.Name : 'Article inconnu';
-  }
-
-  loadHardwareTypes() {
-    this.hardwareTypeService.listHardwareTypes().subscribe(types => {
-      this.hardwareTypes = types;
-      console.log('Types hardware chargés :', types);
-    });
-  }
-
-  loadItems() {
-    this.itemService.getItems().subscribe(items => {
-      this.items = items;
-      this.filterItems();
-    });
-  }
-
-  onHardwareTypeChange(event: any) {
-    const typeId = Number(event.target.value);
-    console.log('Type sélectionné :', typeId);
-    if (typeId) {
-      this.addForm.patchValue({ hardwareType: typeId });
-      this.itemService.getItemsByHardwareType(typeId).subscribe(items => {
-        console.log('Réponse items pour type', typeId, ':', items);
-        this.items = Array.isArray(items) ? items : [];
-        this.filterItems();
+  private loadHardwareTypes(): void {
+    this.hardwareTypeService.listHardwareTypes()
+      .subscribe({
+        next: (types: HardwareType[]) => {
+          this.materialTypes = types.map((type: HardwareType) => ({
+            Id: type.Id,
+            Name: type.Name,
+            Description: type.Description || ''
+          }));
+        },
+        error: (error) => {
+          console.error('Erreur lors du chargement des types:', error);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Erreur',
+            detail: 'Impossible de charger les types de matériel'
+          });
+        }
       });
-    } else {
-      this.items = [];
-      this.filteredItems = [];
-      this.selectedItem = null;
+  }
+
+  public onAddItem(): void {
+    if (this.vehicleId) {
+      this.router.navigate(['add'], { relativeTo: this.route });
     }
   }
 
-  filterItems() {
-    const search = this.itemSearch.toLowerCase();
-    this.filteredItems = (this.items || []).filter(item =>
-      !search || item.Name.toLowerCase().includes(search)
-    );
+  public onTypeChange(): void {
+    this.selectedAddItem = null;
+    this.availableItems = [];
+    
+    if (this.selectedType) {
+      console.log('Type sélectionné:', this.selectedType);
+      this.itemService.getItemsByHardwareType(this.selectedType.Id)
+        .subscribe({
+          next: (items: any[]) => {
+            console.log('Items reçus:', items);
+            this.availableItems = items.map(item => {
+              const itemId = item.id || item.Id || '';
+              console.log('ID de l\'item mappé:', itemId);
+              return {
+                Id: itemId,
+                Name: item.name || item.Name || '',
+                Description: item.description || item.Description || null
+              };
+            }).filter(item => item.Id !== '');
+            
+            if (this.availableItems.length === 0) {
+              this.messageService.add({
+                severity: 'info',
+                summary: 'Information',
+                detail: 'Aucun article disponible pour ce type de matériel'
+              });
+            }
+            console.log('Items disponibles après mapping:', this.availableItems);
+          },
+          error: (error) => {
+            console.error('Erreur lors du chargement des items:', error);
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Erreur',
+              detail: 'Impossible de charger la liste des articles'
+            });
+          }
+        });
+    }
   }
 
-  onItemSearchChange() {
-    this.filterItems();
-  }
-
-  submitAddItem(): void {
-    if (this.selectedItem && this.addForm.valid) {
-      const formValue = this.addForm.value;
-      this.stockService.addItemToStockCar(
-        this.vehiculeId,
-        Number(this.selectedItem.id),
-        formValue.quantity
-      ).subscribe({
+  public onViewHistory(): void {
+    this.loading = true;
+    this.stockService.getHistoryByCar(this.vehicleId)
+      .pipe(finalize(() => {
+        this.loading = false;
+        this.displayHistoryDialog = true;
+      }))
+      .subscribe({
         next: (response) => {
+          console.log('Réponse historique:', response);
+          if (response && response.JsonResult) {
+            this.stockHistory = response.JsonResult;
+            console.log('Historique chargé:', this.stockHistory);
+          } else {
+            console.log('Pas d\'historique dans la réponse:', response);
+            this.stockHistory = [];
+          }
+        },
+        error: (error) => {
+          console.error('Erreur lors du chargement de l\'historique:', error);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Erreur',
+            detail: 'Impossible de charger l\'historique'
+          });
+        }
+      });
+  }
+
+  public onConfirmAdd(): void {
+    if (this.selectedAddItem && this.addQuantity > 0) {
+      this.adding = true;
+      
+      // Vérification et conversion des IDs
+      const itemId = this.selectedAddItem.Id || '';
+      
+      if (!itemId) {
+        console.error('ID de l\'item invalide:', this.selectedAddItem);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Erreur',
+          detail: 'ID de l\'item invalide'
+        });
+        this.adding = false;
+        return;
+      }
+
+      console.log('Données avant envoi:', {
+        vehicleId: this.vehicleId,
+        itemId: itemId,
+        quantity: this.addQuantity,
+        selectedItem: this.selectedAddItem
+      });
+
+      this.stockService.addItemToStockCar(
+        this.vehicleId,
+        itemId,
+        this.addQuantity
+      ).subscribe({
+        next: (response: any) => {
+          console.log('Réponse API:', response);
           if (response.Status === 200) {
             this.messageService.add({
               severity: 'success',
               summary: 'Succès',
-              detail: 'Item ajouté au stock avec succès'
+              detail: 'Article ajouté au stock avec succès'
             });
-            this.displayAddDialog = false;
-            this.addForm.reset({
-              hardwareType: '',
-              quantity: 1
-            });
-            this.selectedItem = null;
-            this.itemSearch = '';
-            this.filteredItems = [];
-            this.loadStock(this.vehiculeId);
-            this.loadStockHistory();
+            this.loadStockData();
+            this.onCancelAdd();
           } else {
+            console.error('Erreur API:', response);
             this.messageService.add({
               severity: 'error',
               summary: 'Erreur',
-              detail: response.Message || 'Erreur lors de l\'ajout de l\'item'
+              detail: response.ErrorMessage || 'Erreur lors de l\'ajout au stock'
             });
           }
+          this.adding = false;
         },
-        error: (error) => {
-          console.error('Erreur lors de l\'ajout de l\'item:', error);
+        error: (error: any) => {
+          console.error('Erreur complète:', error);
+          console.error('Corps de la réponse:', error.error);
+          console.error('Statut HTTP:', error.status);
           this.messageService.add({
             severity: 'error',
             summary: 'Erreur',
-            detail: 'Une erreur est survenue lors de l\'ajout de l\'item'
+            detail: error.error?.ErrorMessage || 'Erreur lors de l\'ajout au stock'
           });
+          this.adding = false;
         }
       });
     } else {
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'Attention',
-        detail: 'Veuillez sélectionner un type de matériel et un item'
+      console.log('Validation échouée:', {
+        selectedAddItem: this.selectedAddItem,
+        addQuantity: this.addQuantity
       });
     }
   }
 
-  loadStock(carId: number): void {
-    this.loadingStock = true;
-    this.stockService.getStockByCar(carId).subscribe({
-      next: (res) => {
-        this.stock = res.JsonResult || [];
-        console.log('Stock du véhicule récupéré :', this.stock);
-        this.loadingStock = false;
+  public onConfirmRetrait(): void {
+    if (!this.retraitForm.valid || !this.selectedItem) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Erreur',
+        detail: 'Veuillez remplir tous les champs obligatoires'
+      });
+      return;
+    }
+
+    const formValue = this.retraitForm.value;
+    this.loading = true;
+
+    this.stockService.removeItemFromVehicleStock(
+      parseInt(this.vehicleId),
+      parseInt(this.selectedItem.id),
+      formValue.quantity,
+      formValue.client
+    )
+    .pipe(finalize(() => {
+      this.loading = false;
+      this.displayRetraitDialog = false;
+      this.retraitForm.reset();
+    }))
+    .subscribe({
+      next: () => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Succès',
+          detail: 'Article retiré du stock avec succès'
+        });
+        this.loadStockData();
       },
-      error: (_) => {
-        this.stock = [];
-        this.loadingStock = false;
+      error: (error) => {
+        console.error('Erreur lors du retrait du stock:', error);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Erreur',
+          detail: 'Impossible de retirer l\'article du stock'
+        });
       }
     });
   }
 
-  openRetraitDialog(item: any) {
-    this.selectedStockItem = item;
-    const max = Number(item.Qt) || 1;
-    this.retraitQuantities = Array.from({length: max}, (_, i) => i + 1);
-    this.retraitForm.reset({ quantity: 1, client: '' });
-    this.displayRetraitDialog = true;
+  public onCancelAdd(): void {
+    this.showAddDialog = false;
+    this.selectedType = null;
+    this.selectedAddItem = null;
+    this.addQuantity = 1;
   }
 
-  submitRetrait() {
-    if (this.retraitForm.valid && this.selectedStockItem) {
-      const { quantity, client } = this.retraitForm.value;
-      this.stockService.removeItemFromStockCar(
-        this.selectedStockItem.IdCar,
-        this.selectedStockItem.IdItem,
-        quantity,
-        client,
-        '' // remarque optionnelle
-      ).subscribe({
-        next: (res) => {
-          this.displayRetraitDialog = false;
-          this.loadStock(this.vehiculeId);
-          this.loadStockHistory();
+  public onCloseHistory(): void {
+    this.displayHistoryDialog = false;
+  }
+
+  public onRetireItem(item: any): void {
+    this.router.navigate([`${item.id}/remove`], {
+      relativeTo: this.route,
+      state: { item }
+    });
+  }
+
+  private loadStockData(): void {
+    this.loading = true;
+    this.stockService.getStockByCar(this.vehicleId)
+      .pipe(finalize(() => this.loading = false))
+      .subscribe({
+        next: (response) => {
+          console.log('Réponse API stock:', response);
+          if (response && response.JsonResult) {
+            this.stockItems = response.JsonResult.map((item: any) => ({
+              id: item.IdItem || item.id,
+              Label: item.ItemName,
+              Qt: item.Qt
+            }));
+            console.log('Stock items mappés:', this.stockItems);
+          } else {
+            console.log('Pas de données dans la réponse:', response);
+            this.stockItems = [];
+          }
         },
-        error: (err) => {
-          // Gérer l'erreur si besoin
-          this.displayRetraitDialog = false;
+        error: (error) => {
+          console.error('Erreur lors du chargement du stock:', error);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Erreur',
+            detail: 'Impossible de charger le stock'
+          });
+          this.stockItems = [];
+        }
+      });
+  }
+
+  public openRemoveDialog(item: StockItem): void {
+    this.selectedItem = item;
+    this.removeQuantity = 1;
+    this.clientName = '';
+    this.showRemoveDialog = true;
+  }
+
+  public cancelRemove(): void {
+    this.showRemoveDialog = false;
+    this.selectedItem = null;
+    this.removeQuantity = 1;
+    this.clientName = '';
+  }
+
+  public isRemoveValid(): boolean {
+    return this.removeQuantity > 0 && 
+           this.removeQuantity <= (this.selectedItem?.Qt || 0) && 
+           this.clientName.trim() !== '';
+  }
+
+  public confirmRemove(): void {
+    if (this.selectedItem && this.isRemoveValid()) {
+      this.removing = true;
+      
+      console.log('Retrait du stock :', {
+        idCar: this.vehicleId,
+        idItem: this.selectedItem.id,
+        quantity: this.removeQuantity,
+        remarque: this.clientName
+      });
+
+      this.stockService.removeItemFromVehicleStock(
+        this.vehicleId,
+        this.selectedItem.id,
+        this.removeQuantity,
+        this.clientName
+      )
+      .pipe(finalize(() => {
+        this.removing = false;
+        this.showRemoveDialog = false;
+      }))
+      .subscribe({
+        next: (response) => {
+          console.log('Réponse du retrait:', response);
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Succès',
+            detail: 'Article retiré du stock'
+          });
+          this.loadStockData();
+        },
+        error: (error) => {
+          console.error('Erreur lors du retrait du stock:', error);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Erreur',
+            detail: error.error?.Message || 'Impossible de retirer l\'article du stock'
+          });
         }
       });
     }
+  }
+
+  public openAddDialog(): void {
+    this.selectedType = null;
+    this.selectedAddItem = null;
+    this.addQuantity = 1;
+    this.availableItems = [];
+    this.showAddDialog = true;
+  }
+
+  public isAddValid(): boolean {
+    return !!this.selectedType && 
+           !!this.selectedAddItem && 
+           this.addQuantity > 0;
   }
 } 

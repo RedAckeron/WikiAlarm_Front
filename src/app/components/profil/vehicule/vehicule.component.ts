@@ -1,7 +1,17 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { MessageService } from 'primeng/api';
 import { CarService } from '../../../services/car.service';
 import { StockService } from '../../../services/stock.service';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Subscription } from 'rxjs';
+import { finalize } from 'rxjs/operators';
+
+interface Vehicle {
+  Id: number;
+  Marque: string;
+  Immatriculation: string;
+  Km: number;
+}
 
 interface CarPassEntry {
   date: string;
@@ -13,7 +23,6 @@ interface StockItem {
   Id: number;
   Name: string;
   Quantity: number;
-  // Ajoutez d'autres propriétés selon votre API
 }
 
 @Component({
@@ -21,82 +30,70 @@ interface StockItem {
   templateUrl: './vehicule.component.html',
   styleUrls: ['./vehicule.component.scss']
 })
-export class VehiculeComponent implements OnInit {
-  vehicules: any[] = [];
-  loading = true;
-  selectedVehicule: any = null;
-  displayCarPassDialog = false;
-  displayStockDialog = false;
-  carPassForm: FormGroup;
-  carPassHistory: CarPassEntry[] = [];
-  loadingHistory = false;
-  stockItems: StockItem[] = [];
-  loadingStock = false;
+export class VehiculeComponent implements OnInit, OnDestroy {
+  // Données
+  public vehicules: Vehicle[] = [];
+  public selectedVehicule: Vehicle | null = null;
+  public carPassHistory: CarPassEntry[] = [];
+  public stockItems: StockItem[] = [];
+
+  // États
+  public loading = true;
+  public loadingHistory = false;
+  public loadingStock = false;
+  public displayCarPassDialog = false;
+  public displayStockDialog = false;
+
+  // Formulaires
+  public carPassForm: FormGroup = this.fb.group({
+    kilometrage: ['', [Validators.required, Validators.min(0)]],
+    occasion: ['', Validators.required]
+  });
+
+  // Gestion des souscriptions
+  private subscriptions: Subscription[] = [];
 
   constructor(
     private carService: CarService,
     private stockService: StockService,
-    private fb: FormBuilder
-  ) {
-    this.carPassForm = this.fb.group({
-      kilometrage: ['', [Validators.required, Validators.min(0)]],
-      occasion: ['', Validators.required]
-    });
-  }
+    private fb: FormBuilder,
+    private messageService: MessageService
+  ) {}
 
   ngOnInit(): void {
+    this.loadVehicules();
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.forEach(sub => sub.unsubscribe());
+  }
+
+  // Chargement des données
+  private loadVehicules(): void {
     const idUser = sessionStorage.getItem('IdUser');
-    if (idUser) {
-      this.carService.getCarsByUser(idUser).subscribe({
-        next: res => {
-          this.vehicules = res.JsonResult || [];
-          this.loading = false;
-        },
-        error: () => {
-          this.vehicules = [];
-          this.loading = false;
-        }
-      });
-    } else {
-      this.vehicules = [];
-      this.loading = false;
+    if (!idUser) {
+      this.handleNoUser();
+      return;
     }
-  }
 
-  openCarPassDialog(vehicule: any): void {
-    this.selectedVehicule = vehicule;
-    this.carPassForm.patchValue({
-      kilometrage: vehicule.Km,
-      occasion: ''
-    });
-    this.displayCarPassDialog = true;
-    this.loadCarPassHistory(vehicule.Id);
-  }
-
-  openStockDialog(vehicule: any): void {
-    this.selectedVehicule = vehicule;
-    this.displayStockDialog = true;
-    this.loadStock(vehicule.Id);
-  }
-
-  loadStock(vehiculeId: number): void {
-    this.loadingStock = true;
-    this.stockService.getStockByCar(vehiculeId).subscribe({
+    this.loading = true;
+    const vehiculeSub = this.carService.getCarsByUser(idUser).pipe(
+      finalize(() => this.loading = false)
+    ).subscribe({
       next: (res) => {
-        this.stockItems = res.JsonResult || [];
-        this.loadingStock = false;
+        this.vehicules = res.JsonResult || [];
       },
-      error: (_) => {
-        this.stockItems = [];
-        this.loadingStock = false;
+      error: () => {
+        this.vehicules = [];
+        this.showError('Erreur lors du chargement des véhicules');
       }
     });
+    this.subscriptions.push(vehiculeSub);
   }
 
-  loadCarPassHistory(vehiculeId: number): void {
+  private loadCarPassHistory(vehiculeId: number): void {
     this.loadingHistory = true;
-    // TODO: Appeler le service pour charger l'historique
-    // Pour l'instant, on simule des données
+    // Simulation de données - À remplacer par un appel API réel
     setTimeout(() => {
       this.carPassHistory = [
         {
@@ -119,14 +116,83 @@ export class VehiculeComponent implements OnInit {
     }, 500);
   }
 
-  submitCarPass(): void {
-    if (this.carPassForm.valid && this.selectedVehicule) {
-      // TODO: Appeler le service pour mettre à jour le kilométrage
-      console.log('Mise à jour du kilométrage:', {
-        vehiculeId: this.selectedVehicule.Id,
-        ...this.carPassForm.value
+  private loadStockData(vehiculeId: string): void {
+    this.loadingStock = true;
+    const stockSub = this.stockService.getStockByCar(vehiculeId)
+      .pipe(finalize(() => this.loadingStock = false))
+      .subscribe({
+        next: (response) => {
+          if (response?.Items) {
+            this.stockItems = response.Items;
+          }
+        },
+        error: (error) => {
+          console.error('Erreur lors du chargement du stock:', error);
+          this.showError('Impossible de charger le stock');
+          this.stockItems = [];
+        }
       });
-      this.displayCarPassDialog = false;
+    this.subscriptions.push(stockSub);
+  }
+
+  // Gestion des dialogues
+  public openCarPassDialog(vehicule: Vehicle): void {
+    this.selectedVehicule = vehicule;
+    this.carPassForm.patchValue({
+      kilometrage: vehicule.Km,
+      occasion: ''
+    });
+    this.displayCarPassDialog = true;
+    this.loadCarPassHistory(vehicule.Id);
+  }
+
+  public openStockDialog(vehicule: Vehicle): void {
+    this.selectedVehicule = vehicule;
+    this.displayStockDialog = true;
+    this.loadStockData(vehicule.Id.toString());
+  }
+
+  // Soumission des formulaires
+  public submitCarPass(): void {
+    if (!this.carPassForm.valid || !this.selectedVehicule) {
+      this.showError('Veuillez remplir correctement tous les champs');
+      return;
     }
+
+    const updateData = {
+      vehiculeId: this.selectedVehicule.Id,
+      ...this.carPassForm.value
+    };
+
+    // TODO: Implémenter l'appel API pour la mise à jour
+    console.log('Mise à jour du kilométrage:', updateData);
+    
+    // Simuler une mise à jour réussie
+    this.showSuccess('Kilométrage mis à jour avec succès');
+    this.displayCarPassDialog = false;
+    this.carPassForm.reset();
+  }
+
+  // Utilitaires
+  private handleNoUser(): void {
+    this.vehicules = [];
+    this.loading = false;
+    this.showError('Utilisateur non connecté');
+  }
+
+  private showError(message: string): void {
+    this.messageService.add({
+      severity: 'error',
+      summary: 'Erreur',
+      detail: message
+    });
+  }
+
+  private showSuccess(message: string): void {
+    this.messageService.add({
+      severity: 'success',
+      summary: 'Succès',
+      detail: message
+    });
   }
 }

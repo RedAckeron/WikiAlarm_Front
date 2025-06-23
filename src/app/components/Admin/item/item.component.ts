@@ -2,6 +2,7 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { MessageService } from 'primeng/api';
 import { Table } from 'primeng/table';
 import { ItemService, Item } from '../../../services/item.service';
+import { HardwareTypeService, HardwareType } from '../../../services/hardwaretype.service';
 import { Router } from '@angular/router';
 
 @Component({
@@ -14,6 +15,7 @@ export class ItemComponent implements OnInit {
   @ViewChild('dt') table!: Table;
   
   items: Item[] = [];
+  hardwareTypes: HardwareType[] = [];
   showAddDialog: boolean = false;
   metiers: any[] = [
     { label: '📡 Intrusion', value: 'intrusion' },
@@ -45,11 +47,13 @@ export class ItemComponent implements OnInit {
   constructor(
     private messageService: MessageService,
     private itemService: ItemService,
+    private hardwareTypeService: HardwareTypeService,
     private router: Router
   ) { }
 
   ngOnInit(): void {
     this.loadItems();
+    this.loadHardwareTypes();
     this.loadMetiers();
     this.loadTypesMateriel();
   }
@@ -57,17 +61,34 @@ export class ItemComponent implements OnInit {
   loadItems() {
     this.loading = true;
     this.itemService.getItems().subscribe({
-      next: (data) => {
-        this.items = data;
+      next: (items) => {
+        this.items = items;
         this.loading = false;
       },
       error: (error) => {
+        console.error('Erreur lors du chargement des items:', error);
         this.messageService.add({
           severity: 'error',
           summary: 'Erreur',
           detail: 'Impossible de charger la liste des items'
         });
         this.loading = false;
+      }
+    });
+  }
+
+  loadHardwareTypes() {
+    this.hardwareTypeService.listHardwareTypes().subscribe({
+      next: (types) => {
+        this.hardwareTypes = types;
+      },
+      error: (error) => {
+        console.error('Erreur lors du chargement des types:', error);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Erreur',
+          detail: 'Impossible de charger les types de matériel'
+        });
       }
     });
   }

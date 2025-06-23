@@ -1,75 +1,108 @@
 <div class="profile-container">
     <div class="card">
-        <h2>Mon Profil</h2>
-        
-        <div class="user-info">
-            <div class="info-group">
-                <label>ID Utilisateur</label>
-                <p>{{ userData?.Id }}</p>
-            </div>
-
-            <div class="info-group">
-                <label>Email</label>
-                <p>{{ userData?.Email }}</p>
-            </div>
-
-            <div class="info-group">
-                <label>Nom</label>
-                <p>{{ userData?.Name }}</p>
-            </div>
-
-            <div class="info-group">
-                <label>Prénom</label>
-                <p>{{ userData?.FirstName || 'Non défini' }}</p>
-            </div>
-
-            <div class="info-group">
-                <label>Surnom</label>
-                <p>{{ userData?.NickName || 'Non défini' }}</p>
-            </div>
-
-            <div class="info-group">
-                <label>Rôle</label>
-                <p>{{ userData?.Role }}</p>
-            </div>
-
-            <div class="info-group">
-                <label>Date d'inscription</label>
-                <p>{{ userData?.Dtln | date:'dd/MM/yyyy HH:mm' }}</p>
-            </div>
-
-            <div class="info-group">
-                <label>Statut du compte</label>
-                <p [class.active]="userData?.Active === 1" [class.inactive]="userData?.Active === 0">
-                    <i [class]="userData?.Active === 1 ? 'pi pi-check-circle text-success' : 'pi pi-times-circle text-danger'" style="font-size: 1.2rem; margin-right: 8px;"></i>
-                    {{ userData?.Active === 1 ? 'Actif' : 'Inactif' }}
-                </p>
-            </div>
+        <div class="card-header">
+            <h2>Mon Profil</h2>
         </div>
+        
+        <div class="user-info" *ngIf="!loading">
+            <ng-container *ngIf="userData; else noData">
+                <div class="info-group">
+                    <label>ID Utilisateur</label>
+                    <p>{{ userData.Id }}</p>
+                </div>
+
+                <div class="info-group">
+                    <label>Email</label>
+                    <p>{{ userData.Email }}</p>
+                </div>
+
+                <div class="info-group">
+                    <label>Nom</label>
+                    <p>{{ userData.Name }}</p>
+                </div>
+
+                <div class="info-group">
+                    <label>Prénom</label>
+                    <p>{{ userData.FirstName || 'Non défini' }}</p>
+                </div>
+
+                <div class="info-group">
+                    <label>Surnom</label>
+                    <p>{{ userData.NickName || 'Non défini' }}</p>
+                </div>
+
+                <div class="info-group">
+                    <label>Rôle</label>
+                    <p>{{ userData.Role }}</p>
+                </div>
+
+                <div class="info-group">
+                    <label>Date d'inscription</label>
+                    <p>{{ userData.Dtln | date:'dd/MM/yyyy HH:mm' }}</p>
+                </div>
+
+                <div class="info-group">
+                    <label>Statut du compte</label>
+                    <p [class]="userData.Active === 1 ? 'status-active' : 'status-inactive'">
+                        <i [class]="userData.Active === 1 ? 'pi pi-check-circle' : 'pi pi-times-circle'"></i>
+                        {{ userData.Active === 1 ? 'Actif' : 'Inactif' }}
+                    </p>
+                </div>
+            </ng-container>
+        </div>
+
+        <div class="loading-state" *ngIf="loading">
+            <p-progressSpinner></p-progressSpinner>
+            <p>Chargement des informations...</p>
+        </div>
+
+        <ng-template #noData>
+            <div class="no-data-message">
+                <i class="pi pi-info-circle"></i>
+                <p>Aucune information utilisateur disponible</p>
+            </div>
+        </ng-template>
 
         <div class="password-section">
             <h3>Modifier le mot de passe</h3>
             <form [formGroup]="passwordForm" (ngSubmit)="onSubmitPassword()" class="p-fluid">
                 <div class="field">
                     <label for="password">Nouveau mot de passe</label>
-                    <input id="password" type="password" pInputText formControlName="Password" 
-                           [ngClass]="{'ng-invalid ng-dirty': passwordForm.get('Password')?.invalid && passwordForm.get('Password')?.touched}">
+                    <div class="p-input-icon-right">
+                        <input id="password" 
+                               type="password" 
+                               pInputText 
+                               formControlName="Password"
+                               [ngClass]="{'ng-invalid ng-dirty': passwordForm.get('Password')?.invalid && passwordForm.get('Password')?.touched}">
+                    </div>
                     <small class="p-error" *ngIf="passwordForm.get('Password')?.invalid && passwordForm.get('Password')?.touched">
+                        <span *ngIf="passwordForm.get('Password')?.errors?.['required']">Le mot de passe est requis</span>
                         <span *ngIf="passwordForm.get('Password')?.errors?.['minlength']">Le mot de passe doit contenir au moins 6 caractères</span>
                     </small>
                 </div>
 
                 <div class="field">
                     <label for="confirmPassword">Confirmer le nouveau mot de passe</label>
-                    <input id="confirmPassword" type="password" pInputText formControlName="ConfirmPassword"
-                           [ngClass]="{'ng-invalid ng-dirty': (passwordForm.get('ConfirmPassword')?.invalid || passwordForm.hasError('mismatch')) && passwordForm.get('ConfirmPassword')?.touched}">
+                    <div class="p-input-icon-right">
+                        <input id="confirmPassword" 
+                               type="password" 
+                               pInputText 
+                               formControlName="ConfirmPassword"
+                               [ngClass]="{'ng-invalid ng-dirty': (passwordForm.get('ConfirmPassword')?.invalid || passwordForm.hasError('mismatch')) && passwordForm.get('ConfirmPassword')?.touched}">
+                    </div>
                     <small class="p-error" *ngIf="passwordForm.hasError('mismatch') && passwordForm.get('ConfirmPassword')?.touched">
                         Les mots de passe ne correspondent pas
                     </small>
                 </div>
 
-                <div class="button-container" *ngIf="canSubmitPasswordForm()">
-                    <button pButton type="submit" label="Mettre à jour le mot de passe" class="p-button-success" [disabled]="loading"></button>
+                <div class="button-container">
+                    <button pButton 
+                            type="submit" 
+                            label="Mettre à jour le mot de passe" 
+                            class="p-button-success"
+                            [disabled]="!canSubmitPasswordForm() || loading"
+                            [loading]="loading">
+                    </button>
                 </div>
             </form>
         </div>
@@ -77,4 +110,7 @@
 </div>
 
 <p-toast position="bottom-right"></p-toast>
-<p-confirmDialog [style]="{width: '450px'}" acceptButtonStyleClass="p-button-danger" rejectButtonStyleClass="p-button-text"></p-confirmDialog>
+<p-confirmDialog [style]="{width: '450px'}" 
+                acceptButtonStyleClass="p-button-danger" 
+                rejectButtonStyleClass="p-button-text">
+</p-confirmDialog>

@@ -1,10 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, AbstractControl } from '@angular/forms';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { User } from 'src/app/models/User';
 import { AuthService } from 'src/app/services/auth.service';
 import { UserService } from 'src/app/services/user.service';
 import { TokenService } from 'src/app/services/token.service';
+import { Subscription } from 'rxjs';
+import { finalize } from 'rxjs/operators';
 
 @Component({
   selector: 'app-profil',
@@ -12,91 +14,108 @@ import { TokenService } from 'src/app/services/token.service';
   styleUrls: ['./profil.component.scss'],
   providers: [MessageService, ConfirmationService]
 })
-export class ProfilComponent implements OnInit {
-  public passwordForm!: FormGroup;
-  private _isConnected!: Boolean;
-  public loading: boolean = false;
+export class ProfilComponent implements OnInit, OnDestroy {
+  // Formulaires
+  public passwordForm: FormGroup = this.formBuilder.group({
+    Password: ['', [Validators.required, Validators.minLength(6)]],
+    ConfirmPassword: ['', Validators.required]
+  }, { validator: this.passwordMatchValidator });
+
+  // Données utilisateur
   public userData: User | null = null;
+  
+  // États
+  public loading = false;
+  private subscriptions: Subscription[] = [];
 
   constructor(
     private messageService: MessageService,
     private confirmationService: ConfirmationService,
-    private _authService: AuthService,
-    private _userService: UserService,
-    private _tokenService: TokenService,
-    private _formBuilder: FormBuilder
+    private authService: AuthService,
+    private userService: UserService,
+    private tokenService: TokenService,
+    private formBuilder: FormBuilder
   ) {}
 
   ngOnInit(): void {
-    this.initializeForm();
+    this.checkAuthenticationAndLoadData();
+  }
 
-    this._authService.IsConnected.subscribe(
-      (value: Boolean) => {
-        this._isConnected = value;
-        if (value) {
-          const userId = this._tokenService.getUserId();
+  ngOnDestroy(): void {
+    this.subscriptions.forEach(sub => sub.unsubscribe());
+  }
+
+  // Vérification de l'authentification et chargement des données
+  private checkAuthenticationAndLoadData(): void {
+    const authSub = this.authService.IsConnected.subscribe({
+      next: (isConnected: Boolean) => {
+        if (isConnected) {
+          const userId = this.tokenService.getUserId();
           if (userId) {
             this.loadUserData(userId);
           }
         }
       },
-      (error) => {
+      error: () => {
         this.showToast('error', 'Erreur', 'Erreur lors de la vérification de la connexion');
       }
-    );
-  }
-
-  private initializeForm(): void {
-    this.passwordForm = this._formBuilder.group({
-      Password: [null, [Validators.minLength(6)]],
-      ConfirmPassword: [null]
-    }, { validator: this.passwordMatchValidator });
-  }
-
-  private loadUserData(userId: number): void {
-    this._userService.GetById(userId).subscribe({
-      next: (response) => {
-        if (response && response.JsonResult) {
-          this.userData = response.JsonResult;
-          if (this.userData) {
-            this.userData.Active = parseInt(sessionStorage.getItem('userActive') || '0');
-          }
-          this.checkDefaultPassword();
-        }
-      },
-      error: (error) => {
-        this.showToast('error', 'Erreur', 'Erreur lors du chargement des données utilisateur');
-      }
     });
+    this.subscriptions.push(authSub);
   }
 
-  passwordMatchValidator(g: AbstractControl) {
+  // Chargement des données utilisateur
+  private loadUserData(userId: number): void {
+    this.loading = true;
+    const userSub = this.userService.GetById(userId)
+      .pipe(finalize(() => this.loading = false))
+      .subscribe({
+        next: (response) => {
+          if (response?.JsonResult) {
+            this.userData = response.JsonResult;
+            if (this.userData) {
+              this.userData.Active = parseInt(sessionStorage.getItem('userActive') || '0');
+            }
+            this.checkDefaultPassword();
+          }
+        },
+        error: () => {
+          this.showToast('error', 'Erreur', 'Erreur lors du chargement des données utilisateur');
+        }
+      });
+    this.subscriptions.push(userSub);
+  }
+
+  // Validation du mot de passe
+  private passwordMatchValidator(g: AbstractControl) {
     return g.get('Password')?.value === g.get('ConfirmPassword')?.value
       ? null : { mismatch: true };
   }
 
-  canSubmitPasswordForm(): boolean {
+  // Vérification si le formulaire peut être soumis
+  public canSubmitPasswordForm(): boolean {
     const passwordControl = this.passwordForm.get('Password');
     const confirmPasswordControl = this.passwordForm.get('ConfirmPassword');
     
-    const passwordFilled = passwordControl?.value && passwordControl.value.trim().length > 0;
-    const confirmPasswordFilled = confirmPasswordControl?.value && confirmPasswordControl.value.trim().length > 0;
-    const passwordValid = passwordControl?.valid;
-    const confirmPasswordValid = confirmPasswordControl?.valid;
-    const passwordsMatch = !this.passwordForm.hasError('mismatch');
-    
-    return !!(passwordFilled && confirmPasswordFilled && passwordValid && confirmPasswordValid && passwordsMatch);
+    return !!(
+      passwordControl?.value?.trim() &&
+      confirmPasswordControl?.value?.trim() &&
+      passwordControl?.valid &&
+      confirmPasswordControl?.valid &&
+      !this.passwordForm.hasError('mismatch')
+    );
   }
 
+  // Affichage des messages toast
   private showToast(severity: string, summary: string, detail: string): void {
     this.messageService.add({
-      severity: severity,
-      summary: summary,
-      detail: detail,
+      severity,
+      summary,
+      detail,
       life: 5000
     });
   }
 
+  // Vérification du mot de passe par défaut
   private checkDefaultPassword(): void {
     const hasDefaultPassword = sessionStorage.getItem('hasDefaultPassword');
     if (hasDefaultPassword === 'true') {
@@ -108,24 +127,30 @@ export class ProfilComponent implements OnInit {
     }
   }
 
-  onSubmitPassword(): void {
-    if (this.passwordForm.valid && this.canSubmitPasswordForm()) {
-      this.loading = true;
-      const userId = this._tokenService.getUserId();
-      
-      if (!userId) {
-        this.showToast('error', 'Erreur', 'ID utilisateur non trouvé');
-        return;
-      }
+  // Soumission du formulaire de mot de passe
+  public onSubmitPassword(): void {
+    if (!this.canSubmitPasswordForm()) {
+      this.passwordForm.markAllAsTouched();
+      this.showToast('warn', 'Attention', 'Veuillez remplir correctement tous les champs');
+      return;
+    }
 
-      const userData = {
-        Password: this.passwordForm.value.Password,
-        ApiKey: sessionStorage.getItem('apiKey')
-      };
+    const userId = this.tokenService.getUserId();
+    if (!userId) {
+      this.showToast('error', 'Erreur', 'ID utilisateur non trouvé');
+      return;
+    }
 
-      this._userService.Update(userId, userData).subscribe({
+    this.loading = true;
+    const userData = {
+      Password: this.passwordForm.value.Password,
+      ApiKey: sessionStorage.getItem('apiKey')
+    };
+
+    const updateSub = this.userService.Update(userId, userData)
+      .pipe(finalize(() => this.loading = false))
+      .subscribe({
         next: (response) => {
-          this.loading = false;
           if (response.Status === 200) {
             this.showToast('success', 'Succès', 'Mot de passe mis à jour avec succès');
             sessionStorage.removeItem('hasDefaultPassword');
@@ -134,14 +159,10 @@ export class ProfilComponent implements OnInit {
             this.showToast('error', 'Erreur', response.Message || 'Erreur lors de la mise à jour du mot de passe');
           }
         },
-        error: (error) => {
-          this.loading = false;
+        error: () => {
           this.showToast('error', 'Erreur', 'Erreur lors de la mise à jour du mot de passe');
         }
       });
-    } else {
-      this.passwordForm.markAllAsTouched();
-      this.showToast('warn', 'Attention', 'Veuillez remplir correctement tous les champs');
-    }
+    this.subscriptions.push(updateSub);
   }
 }

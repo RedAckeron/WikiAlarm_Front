@@ -1,116 +1,166 @@
 <div style="color: red; font-weight: bold;">TEST MODIF VEHICULE STOCK</div>
 
-<div class="vehicule-stock-row">
-  <div class="vehicule-stock-col" style="flex: 1; min-width: 300px;">
-    <h3>Stock du véhicule</h3>
-    <table class="table">
-      <thead>
+<div class="stock-container">
+  <div class="header">
+    <h2>Stock du véhicule</h2>
+    <div class="actions">
+      <button pButton type="button" 
+              icon="pi pi-plus" 
+              label="Ajouter un article" 
+              class="p-button-success mr-2" 
+              (click)="onAddItem()"></button>
+      <button pButton type="button" 
+              icon="pi pi-history" 
+              label="Historique" 
+              class="p-button-info" 
+              (click)="onViewHistory()"></button>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="loading-container">
+    <p-progressSpinner styleClass="w-4rem h-4rem" strokeWidth="8" fill="var(--surface-ground)" animationDuration=".5s"></p-progressSpinner>
+  </div>
+
+  <div *ngIf="!loading && stockItems.length === 0" class="empty-state">
+    <p>Aucun article dans le stock</p>
+  </div>
+
+  <div *ngIf="!loading && stockItems.length > 0" class="stock-table">
+    <p-table [value]="stockItems" [tableStyle]="{ 'min-width': '50rem' }">
+      <ng-template pTemplate="header">
         <tr>
           <th>Article</th>
           <th>Quantité</th>
-          <th>Action</th>
+          <th>Actions</th>
         </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let item of stock" (click)="openRetraitDialog(item)" style="cursor:pointer;">
-          <td>{{ item.ItemName }}</td>
-          <td>{{ item.Qt }}</td>
+      </ng-template>
+      <ng-template pTemplate="body" let-item>
+        <tr>
+          <td>{{item.Label}}</td>
+          <td>{{item.Qt}}</td>
           <td>
-            <button type="button" class="btn btn-outline-danger btn-sm" (click)="openRetraitDialog(item)">
-              <i class="pi pi-minus"></i>
-            </button>
+            <button pButton type="button" 
+                    icon="pi pi-minus" 
+                    class="p-button-danger p-button-rounded p-button-text" 
+                    (click)="onRetireItem(item)"
+                    [disabled]="item.Qt <= 0"></button>
           </td>
         </tr>
-      </tbody>
-    </table>
-  </div>
-  <div class="vehicule-stock-col" style="flex: 1; min-width: 300px;">
-    <h3>Derniers mouvements de stock</h3>
-    <div *ngIf="isLoadingHistorique" class="text-center my-4">
-      <i class="pi pi-spin pi-spinner" style="font-size: 2rem;"></i>
-      <div>Chargement de l'historique...</div>
-    </div>
-    <div *ngIf="!isLoadingHistorique">
-      <ng-content select="[historique]"></ng-content>
-    </div>
+      </ng-template>
+    </p-table>
   </div>
 </div>
 
-<p-dialog header="Retirer du stock" [(visible)]="displayRetraitDialog" [modal]="true" [style]="{width: '400px'}">
-  <form [formGroup]="retraitForm" (ngSubmit)="submitRetrait()">
-    <div class="mb-3">
-      <label>Quantité à retirer</label>
-      <select class="form-select" formControlName="quantity">
-        <option *ngFor="let q of retraitQuantities" [value]="q">{{ q }}</option>
-      </select>
+<!-- Dialog d'ajout -->
+<p-dialog header="Ajouter un article" 
+          [(visible)]="displayAddDialog" 
+          [modal]="true" 
+          [style]="{width: '450px'}" 
+          [draggable]="false" 
+          [resizable]="false">
+  <div class="p-fluid">
+    <div class="field">
+      <label for="type">Type de matériel</label>
+      <p-dropdown id="type"
+                  [options]="materialTypes" 
+                  [(ngModel)]="selectedType" 
+                  [showClear]="true"
+                  optionLabel="Name"
+                  placeholder="Sélectionnez un type"
+                  (onChange)="onTypeChange($event)">
+        <ng-template let-type pTemplate="item">
+          <div class="type-item">{{type.Name}}</div>
+        </ng-template>
+      </p-dropdown>
     </div>
-    <div class="mb-3">
-      <label>Client</label>
-      <input type="text" class="form-control" formControlName="client" placeholder="Nom du client">
+
+    <div class="field">
+      <label for="item">Article</label>
+      <p-dropdown id="item"
+                  [options]="filteredItems" 
+                  [(ngModel)]="selectedItem" 
+                  optionLabel="Name"
+                  placeholder="Sélectionnez un article"
+                  [disabled]="!selectedType">
+        <ng-template let-item pTemplate="item">
+          <div class="item-info">
+            <div class="item-name">{{item.Name}}</div>
+            <div class="item-description text-muted" *ngIf="item.Description">{{item.Description}}</div>
+          </div>
+        </ng-template>
+      </p-dropdown>
     </div>
-    <div class="d-flex justify-content-end">
-      <button pButton type="button" class="p-button-text me-2" (click)="displayRetraitDialog = false">Annuler</button>
-      <button pButton type="submit" class="p-button-primary" [disabled]="!retraitForm.valid">Retirer</button>
+
+    <div class="field">
+      <label for="quantity">Quantité</label>
+      <p-inputNumber id="quantity" 
+                     [(ngModel)]="addQuantity" 
+                     [showButtons]="true" 
+                     [min]="1" 
+                     buttonLayout="horizontal"
+                     spinnerMode="horizontal"
+                     [step]="1"
+                     decrementButtonClass="p-button-secondary"
+                     incrementButtonClass="p-button-secondary"
+                     incrementButtonIcon="pi pi-plus"
+                     decrementButtonIcon="pi pi-minus"></p-inputNumber>
     </div>
-  </form>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <button pButton type="button" 
+            label="Annuler" 
+            icon="pi pi-times" 
+            class="p-button-text" 
+            (click)="onCancelAdd()"></button>
+    <button pButton type="button" 
+            label="Ajouter" 
+            icon="pi pi-check" 
+            class="p-button-success" 
+            (click)="onConfirmAdd()"
+            [disabled]="!selectedItem || addQuantity <= 0"></button>
+  </ng-template>
 </p-dialog>
 
-<p-dialog header="Ajouter un item" [(visible)]="displayAddDialog" [style]="{width: '450px'}" [modal]="true">
-  <form [formGroup]="addForm" (ngSubmit)="submitAddItem()">
-    <div class="p-fluid">
-      <div class="p-field mb-3">
-        <label for="hardwareType">Type de matériel *</label>
-        <select class="form-select" id="hardwareType" formControlName="hardwareType" (change)="onHardwareTypeChange($event)">
-          <option value="">Sélectionnez un type</option>
-          <option *ngFor="let type of hardwareTypes" [value]="type.Id">{{ type.Name }}</option>
-        </select>
-      </div>
+<!-- Dialog d'historique -->
+<p-dialog header="Historique des mouvements" 
+          [(visible)]="displayHistoryDialog" 
+          [modal]="true" 
+          [style]="{width: '800px'}" 
+          [draggable]="false" 
+          [resizable]="false">
+  <p-table [value]="stockHistory" [tableStyle]="{ 'min-width': '50rem' }">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Date</th>
+        <th>Article</th>
+        <th>Quantité</th>
+        <th>Type</th>
+        <th>Client</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-history>
+      <tr>
+        <td>{{history.Date | date:'dd/MM/yyyy HH:mm'}}</td>
+        <td>{{history.Label}}</td>
+        <td>{{history.Qt}}</td>
+        <td>
+          <span [class]="history.Type === 'ajout' ? 'status-badge status-success' : 'status-badge status-danger'">
+            {{history.Type === 'ajout' ? 'Ajout' : 'Retrait'}}
+          </span>
+        </td>
+        <td>{{history.ClientName || '-'}}</td>
+      </tr>
+    </ng-template>
+  </p-table>
 
-      <div class="p-field mb-3" *ngIf="addForm.get('hardwareType')?.value">
-        <label for="itemSearch">Rechercher un article</label>
-        <div class="p-inputgroup">
-          <input type="text" pInputText class="form-control" placeholder="Tapez pour filtrer..." [(ngModel)]="itemSearch" [ngModelOptions]="{standalone: true}" (input)="filterItems()">
-          <button pButton type="button" icon="pi pi-search" class="p-button-secondary"></button>
-        </div>
-        <label for="item">Article *</label>
-        <p-dropdown
-          [options]="filteredItems"
-          [(ngModel)]="selectedItem"
-          [ngModelOptions]="{standalone: true}"
-          optionLabel="Name"
-          placeholder="Sélectionnez un article"
-          [showClear]="true"
-          class="mt-2">
-          <ng-template let-item pTemplate="item">
-            <div>{{ item.Name }}</div>
-          </ng-template>
-        </p-dropdown>
-      </div>
-
-      <div class="p-field mb-3" *ngIf="addForm.get('hardwareType')?.value && selectedItem">
-        <label for="quantity">Quantité *</label>
-        <p-inputNumber 
-          id="quantity" 
-          formControlName="quantity" 
-          [min]="1" 
-          [showButtons]="true"
-          buttonLayout="horizontal"
-          spinnerMode="horizontal"
-          decrementButtonClass="p-button-secondary"
-          incrementButtonClass="p-button-secondary"
-          incrementButtonIcon="pi pi-plus"
-          decrementButtonIcon="pi pi-minus">
-        </p-inputNumber>
-      </div>
-    </div>
-
-    <div class="p-dialog-footer">
-      <button pButton type="button" label="Annuler" icon="pi pi-times" class="p-button-text" (click)="displayAddDialog = false"></button>
-      <button pButton type="submit" label="Ajouter" icon="pi pi-check" [disabled]="!addForm.valid || !selectedItem"></button>
-    </div>
-  </form>
+  <ng-template pTemplate="footer">
+    <button pButton type="button" 
+            label="Fermer" 
+            icon="pi pi-times" 
+            class="p-button-secondary" 
+            (click)="onCloseHistory()"></button>
+  </ng-template>
 </p-dialog>
 
-<button class="btn btn-primary btn-sm" (click)="displayAddDialog = true">
-  <i class="pi pi-plus"></i> Ajouter un item
-</button> 
+<p-toast></p-toast> 

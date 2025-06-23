@@ -1,121 +1,154 @@
-<div class="card">
-  <div class="card-header">
-    <h5>Mes véhicules</h5>
-  </div>
-  <div class="card-body">
-    <ng-container *ngIf="!loading">
-      <div *ngIf="vehicules.length === 0" class="alert alert-info text-center">
-        <i class="pi pi-info-circle"></i>
-        Aucun véhicule ne vous est actuellement assigné.
+<div class="vehicle-container">
+  <!-- En-tête -->
+  <div class="card">
+    <div class="card-header">
+      <h5>Mes véhicules</h5>
+    </div>
+
+    <!-- Contenu principal -->
+    <div class="card-body">
+      <!-- État de chargement -->
+      <div *ngIf="loading" class="loading-state">
+        <i class="pi pi-spin pi-spinner" style="font-size: 2rem;"></i>
+        <span>Chargement des véhicules...</span>
       </div>
-      <table *ngIf="vehicules.length > 0" class="table table-striped">
-        <thead>
-          <tr>
-            <th>Marque</th>
-            <th>Immatriculation</th>
-            <th>Kilométrage</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let v of vehicules">
-            <td>{{ v.Marque }}</td>
-            <td>{{ v.Immatriculation }}</td>
-            <td>{{ v.Km }}</td>
-            <td>
-              <a [routerLink]="['/profil/vehicule/stock', v.Id]" class="btn btn-sm btn-info me-2">
-                <i class="pi pi-box"></i> Voir le stock
-              </a>
-              <button class="btn btn-sm btn-warning" (click)="openCarPassDialog(v)">
-                <i class="pi pi-id-card"></i> CarPass
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </ng-container>
-    <div *ngIf="loading" class="text-center">
-      <i class="pi pi-spin pi-spinner" style="font-size: 2rem;"></i>
-      <span>Chargement des véhicules...</span>
+
+      <!-- Contenu chargé -->
+      <ng-container *ngIf="!loading">
+        <!-- Message si aucun véhicule -->
+        <div *ngIf="vehicules.length === 0" class="alert alert-info text-center">
+          <i class="pi pi-info-circle"></i>
+          <span>Aucun véhicule ne vous est actuellement assigné.</span>
+        </div>
+
+        <!-- Tableau des véhicules -->
+        <div *ngIf="vehicules.length > 0" class="table-responsive">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>Marque</th>
+                <th>Immatriculation</th>
+                <th>Kilométrage</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let vehicle of vehicules">
+                <td>{{ vehicle.Marque }}</td>
+                <td>{{ vehicle.Immatriculation }}</td>
+                <td>{{ vehicle.Km | number }} km</td>
+                <td class="actions-cell">
+                  <a [routerLink]="['/profil/vehicule/stock', vehicle.Id]" 
+                     class="btn btn-sm btn-info me-2"
+                     pTooltip="Gérer le stock">
+                    <i class="pi pi-box"></i>
+                    <span class="button-text">Stock</span>
+                  </a>
+                  <button class="btn btn-sm btn-warning" 
+                          (click)="openCarPassDialog(vehicle)"
+                          pTooltip="Mettre à jour le CarPass">
+                    <i class="pi pi-id-card"></i>
+                    <span class="button-text">CarPass</span>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </ng-container>
     </div>
   </div>
 </div>
 
-<!-- Dialog Stock -->
-<!-- (popup supprimé) -->
-
 <!-- Dialog CarPass -->
-<p-dialog 
-  [(visible)]="displayCarPassDialog" 
-  [style]="{width: '650px'}" 
-  header="Mise à jour CarPass" 
-  [modal]="true"
-  [draggable]="false"
-  [resizable]="false">
-  <div class="row">
-    <div class="col-md-6">
-      <form [formGroup]="carPassForm" (ngSubmit)="submitCarPass()">
-        <div class="mb-3">
-          <label for="kilometrage" class="form-label">Kilométrage</label>
-          <input 
-            type="number" 
-            class="form-control" 
-            id="kilometrage" 
-            formControlName="kilometrage"
-            [ngClass]="{'is-invalid': carPassForm.get('kilometrage')?.invalid && carPassForm.get('kilometrage')?.touched}">
-          <div class="invalid-feedback" *ngIf="carPassForm.get('kilometrage')?.errors?.['required']">
-            Le kilométrage est requis
+<p-dialog [(visible)]="displayCarPassDialog" 
+          [style]="{width: '650px'}" 
+          header="Mise à jour CarPass" 
+          [modal]="true"
+          [draggable]="false"
+          [resizable]="false">
+  
+  <div class="dialog-content">
+    <div class="row">
+      <!-- Formulaire de mise à jour -->
+      <div class="col-md-6">
+        <form [formGroup]="carPassForm" (ngSubmit)="submitCarPass()">
+          <div class="mb-3">
+            <label for="kilometrage" class="form-label">Kilométrage</label>
+            <div class="input-group">
+              <input type="number" 
+                     class="form-control" 
+                     id="kilometrage" 
+                     formControlName="kilometrage"
+                     [ngClass]="{'is-invalid': carPassForm.get('kilometrage')?.invalid && carPassForm.get('kilometrage')?.touched}">
+              <span class="input-group-text">km</span>
+            </div>
+            <div class="invalid-feedback" *ngIf="carPassForm.get('kilometrage')?.errors?.['required']">
+              Le kilométrage est requis
+            </div>
+            <div class="invalid-feedback" *ngIf="carPassForm.get('kilometrage')?.errors?.['min']">
+              Le kilométrage doit être positif
+            </div>
           </div>
-          <div class="invalid-feedback" *ngIf="carPassForm.get('kilometrage')?.errors?.['min']">
-            Le kilométrage doit être positif
-          </div>
-        </div>
 
-        <div class="mb-3">
-          <label for="occasion" class="form-label">Occasion</label>
-          <textarea 
-            class="form-control" 
-            id="occasion" 
-            rows="3" 
-            formControlName="occasion"
-            [ngClass]="{'is-invalid': carPassForm.get('occasion')?.invalid && carPassForm.get('occasion')?.touched}"
-            placeholder="Décrivez l'occasion de la mise à jour du kilométrage..."></textarea>
-          <div class="invalid-feedback" *ngIf="carPassForm.get('occasion')?.errors?.['required']">
-            L'occasion est requise
+          <div class="mb-3">
+            <label for="occasion" class="form-label">Occasion</label>
+            <textarea class="form-control" 
+                      id="occasion" 
+                      rows="3" 
+                      formControlName="occasion"
+                      [ngClass]="{'is-invalid': carPassForm.get('occasion')?.invalid && carPassForm.get('occasion')?.touched}"
+                      placeholder="Décrivez l'occasion de la mise à jour du kilométrage..."></textarea>
+            <div class="invalid-feedback" *ngIf="carPassForm.get('occasion')?.errors?.['required']">
+              L'occasion est requise
+            </div>
           </div>
-        </div> 
 
-        <div class="text-end">
-          <button type="button" class="btn btn-secondary me-2" (click)="displayCarPassDialog = false">
-            Annuler
-          </button>
-          <button type="submit" class="btn btn-warning" [disabled]="carPassForm.invalid">
-            Enregistrer
-          </button>
-        </div>
-      </form>
-    </div>
-    <div class="col-md-6">
-      <div class="card">
-        <div class="card-header">
-          <h6 class="mb-0">Historique des entrées</h6>
-        </div>
-        <div class="card-body p-0">
-          <div *ngIf="loadingHistory" class="text-center p-3">
-            <i class="pi pi-spin pi-spinner" style="font-size: 1.5rem;"></i>
-            <span class="ms-2">Chargement de l'historique...</span>
+          <div class="dialog-actions">
+            <button type="button" 
+                    class="btn btn-secondary me-2" 
+                    (click)="displayCarPassDialog = false">
+              Annuler
+            </button>
+            <button type="submit" 
+                    class="btn btn-warning" 
+                    [disabled]="carPassForm.invalid || loading">
+              <i class="pi pi-save"></i> Enregistrer
+            </button>
           </div>
-          <div *ngIf="!loadingHistory && carPassHistory.length === 0" class="text-center p-3">
-            <i class="pi pi-info-circle"></i>
-            <span class="ms-2">Aucun historique disponible</span>
+        </form>
+      </div>
+
+      <!-- Historique -->
+      <div class="col-md-6">
+        <div class="card history-card">
+          <div class="card-header">
+            <h6 class="mb-0">Historique des entrées</h6>
           </div>
-          <div *ngIf="!loadingHistory && carPassHistory.length > 0" class="list-group list-group-flush">
-            <div *ngFor="let entry of carPassHistory" class="list-group-item">
-              <div class="d-flex justify-content-between align-items-center">
-                <small class="text-muted">{{ entry.date | date:'dd/MM/yyyy' }}</small>
-                <strong>{{ entry.kilometrage }} km</strong>
+          <div class="card-body p-0">
+            <!-- État de chargement de l'historique -->
+            <div *ngIf="loadingHistory" class="loading-state">
+              <i class="pi pi-spin pi-spinner"></i>
+              <span>Chargement de l'historique...</span>
+            </div>
+
+            <!-- Message si aucun historique -->
+            <div *ngIf="!loadingHistory && carPassHistory.length === 0" 
+                 class="empty-state">
+              <i class="pi pi-info-circle"></i>
+              <span>Aucun historique disponible</span>
+            </div>
+
+            <!-- Liste de l'historique -->
+            <div *ngIf="!loadingHistory && carPassHistory.length > 0" 
+                 class="list-group list-group-flush">
+              <div *ngFor="let entry of carPassHistory" class="list-group-item">
+                <div class="d-flex justify-content-between align-items-center">
+                  <small class="text-muted">{{ entry.date | date:'dd/MM/yyyy' }}</small>
+                  <strong>{{ entry.kilometrage | number }} km</strong>
+                </div>
+                <div class="mt-1 text-muted">{{ entry.occasion }}</div>
               </div>
-              <div class="mt-1">{{ entry.occasion }}</div>
             </div>
           </div>
         </div>
@@ -123,3 +156,6 @@
     </div>
   </div>
 </p-dialog>
+
+<!-- Messages Toast -->
+<p-toast></p-toast>

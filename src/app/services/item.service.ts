@@ -5,7 +5,7 @@ import { map } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 
 export interface Item {
-  id: string;
+  Id: string;
   Name: string;
   Description: string | null;
   IdWork: string;
@@ -41,13 +41,23 @@ export class ItemService {
     return this.http.post(environment.apiUrl + '?route=item/Add', body);
   }
 
-  getItemsByHardwareType(idHardwareType: number): Observable<Item[]> {
+  getItemsByHardwareType(idHardwareType: string | number): Observable<Item[]> {
     const apiKey = sessionStorage.getItem('apiKey');
     return this.http.post<any>(environment.apiUrl + '?route=item/ListByHardwareType', {
       ApiKey: apiKey,
-      IdHardwareType: idHardwareType
+      IdHardwareType: idHardwareType.toString()
     }).pipe(
-      map(response => response.JsonResult)
+      map(response => {
+        console.log('Réponse API ListByHardwareType:', response);
+        if (response?.JsonResult && Array.isArray(response.JsonResult)) {
+          return response.JsonResult;
+        } else if (response?.JsonResult?.items && Array.isArray(response.JsonResult.items)) {
+          return response.JsonResult.items;
+        } else {
+          console.error('Format de réponse inattendu:', response);
+          return [];
+        }
+      })
     );
   }
 } 

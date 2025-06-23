@@ -11,7 +11,7 @@ import { HardwareTypeService, HardwareType } from '../../../services/hardwaretyp
 })
 export class ItemAddComponent implements OnInit {
   typesMateriel: HardwareType[] = [];
-  loadingTypes = false;
+  loading = false;
 
   newItem: any = {
     Name: '',
@@ -31,27 +31,30 @@ export class ItemAddComponent implements OnInit {
   }
 
   loadTypesMateriel() {
-    this.loadingTypes = true;
+    this.loading = true;
     this.hardwareTypeService.listHardwareTypes().subscribe({
       next: (types) => {
         this.typesMateriel = types;
-        this.loadingTypes = false;
+        this.loading = false;
       },
-      error: () => {
-        this.typesMateriel = [];
-        this.loadingTypes = false;
-        this.messageService.add({ severity: 'error', summary: 'Erreur', detail: 'Impossible de charger les types de matériel' });
+      error: (error) => {
+        console.error('Erreur lors du chargement des types:', error);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Erreur',
+          detail: 'Impossible de charger les types de matériel'
+        });
+        this.loading = false;
       }
     });
   }
 
   saveItem() {
-    const idHardwareType = Number(this.newItem.IdHardwareType);
-    if (this.newItem.Name && idHardwareType > 0) {
+    if (this.newItem.Name && this.newItem.IdHardwareType) {
       const addBy = Number(sessionStorage.getItem('IdUser')) || 1;
       this.itemService.addItem({
         Name: this.newItem.Name,
-        IdHardwareType: idHardwareType,
+        IdHardwareType: this.newItem.IdHardwareType,
         AddBy: addBy
       }).subscribe({
         next: (res) => {
