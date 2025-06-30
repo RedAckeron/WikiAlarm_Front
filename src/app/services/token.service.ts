@@ -26,4 +26,17 @@ export class TokenService {
   public getRefreshToken(): string|null {
     return sessionStorage.getItem('refreshToken');
   }
+
+  public getApiKey(): string {
+    const apiKey = sessionStorage.getItem('apiKey');
+    if (!apiKey) {
+      console.error('ApiKey non trouvée dans la session');
+      return '';
+    }
+    return apiKey;
+  }
+
+  public saveApiKey(apiKey: string): void {
+    sessionStorage.setItem('apiKey', apiKey);
+  }
 }

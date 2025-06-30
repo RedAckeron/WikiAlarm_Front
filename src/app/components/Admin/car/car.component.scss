@@ -1,0 +1,195 @@
+// Styles de base (mobile)
+.card {
+  margin: 10px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+  .card-header {
+    padding: 10px;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    h5 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    button {
+      width: 100%;
+    }
+  }
+}
+
+.p-table {
+  margin-top: 10px;
+  overflow-x: auto;
+
+  th {
+    font-weight: 600;
+    background-color: #f8f9fa;
+    font-size: 14px;
+    padding: 8px;
+  }
+
+  td {
+    padding: 8px;
+    font-size: 14px;
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: 5px;
+    justify-content: center;
+
+    button {
+      padding: 5px;
+      font-size: 12px;
+    }
+  }
+}
+
+// Dialog styles pour mobile
+:host ::ng-deep {
+  .p-dialog {
+    width: 95% !important;
+    margin: 10px;
+
+    .p-dialog-content {
+      padding: 10px;
+    }
+
+    .p-field {
+      margin-bottom: 15px;
+
+      label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 500;
+        font-size: 14px;
+      }
+
+      input {
+        width: 100%;
+        padding: 8px;
+        font-size: 14px;
+      }
+    }
+
+    .p-dialog-footer {
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+
+      button {
+        width: 100%;
+        margin: 0;
+      }
+    }
+  }
+
+  .p-dropdown {
+    width: 100%;
+    margin-bottom: 10px;
+
+    .p-dropdown-label {
+      padding: 8px;
+      font-size: 14px;
+    }
+  }
+}
+
+// Styles pour desktop (≥ 720px)
+@media (min-width: 720px) {
+  .card {
+    margin: 20px;
+
+    .card-header {
+      padding: 15px 20px;
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: center;
+
+      h5 {
+        font-size: 20px;
+      }
+
+      button {
+        width: auto;
+      }
+    }
+  }
+
+  .p-table {
+    margin-top: 20px;
+
+    th {
+      font-size: 16px;
+      padding: 12px;
+    }
+
+    td {
+      padding: 12px;
+      font-size: 16px;
+    }
+
+    .action-buttons {
+      gap: 10px;
+
+      button {
+        padding: 8px;
+        font-size: 14px;
+      }
+    }
+  }
+
+  // Dialog styles pour desktop
+  :host ::ng-deep {
+    .p-dialog {
+      width: 600px !important;
+      margin: 0;
+
+      .p-dialog-content {
+        padding: 20px;
+      }
+
+      .p-field {
+        margin-bottom: 20px;
+
+        label {
+          font-size: 16px;
+          margin-bottom: 8px;
+        }
+
+        input {
+          padding: 10px;
+          font-size: 16px;
+        }
+      }
+
+      .p-dialog-footer {
+        padding: 15px 20px;
+        flex-direction: row;
+        justify-content: flex-end;
+
+        button {
+          width: auto;
+          margin-left: 10px;
+        }
+      }
+    }
+
+    .p-dropdown {
+      margin-bottom: 15px;
+
+      .p-dropdown-label {
+        padding: 10px;
+        font-size: 16px;
+      }
+    }
+  }
+}

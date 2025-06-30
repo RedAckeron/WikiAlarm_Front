@@ -16,7 +16,7 @@
         <!-- Tableau des items -->
         <p-table 
             #dt
-            [value]="items" 
+            [value]="filteredItems" 
             [paginator]="true" 
             [rows]="10"
             [loading]="loading"
@@ -36,6 +36,18 @@
                             placeholder="Rechercher..." 
                             class="p-inputtext-sm" />
                     </span>
+                    <span class="p-float-label">
+                        <p-dropdown 
+                            [options]="hardwareTypes" 
+                            [(ngModel)]="selectedHardwareType"
+                            (onChange)="onHardwareTypeChange($event)"
+                            [showClear]="true"
+                            optionLabel="Name"
+                            optionValue="Id"
+                            placeholder="Filtrer par type de matériel"
+                            class="p-inputtext-sm">
+                        </p-dropdown>
+                    </span>
                 </div>
             </ng-template>
 
@@ -50,7 +62,7 @@
 
             <ng-template pTemplate="body" let-item>
                 <tr>
-                    <td>{{ item.id || item.Id }}</td>
+                    <td>{{ item.Id }}</td>
                     <td>
                         <strong>{{ item.Name }}</strong>
                     </td>

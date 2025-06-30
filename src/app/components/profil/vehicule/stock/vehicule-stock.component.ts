@@ -279,7 +279,7 @@ export class VehiculeStockComponent implements OnInit {
   public loading = false;
   public stockItems: StockItem[] = [];
   public stockHistory: any[] = [];
-  public vehicleId = '';
+  public vehicleId: number = 0;
   public displayAddDialog = false;
   public displayHistoryDialog = false;
   public displayRetraitDialog = false;
@@ -320,19 +320,11 @@ export class VehiculeStockComponent implements OnInit {
   }
 
   public ngOnInit(): void {
-    const vehicleId = this.route.snapshot.paramMap.get('id');
-    if (!vehicleId) {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Erreur',
-        detail: 'ID du véhicule manquant'
-      });
-      this.router.navigate(['/profil/vehicule']);
-      return;
-    }
-    this.vehicleId = vehicleId;
-    this.loadStockData();
-    this.loadHardwareTypes();
+    this.route.params.subscribe(params => {
+      this.vehicleId = parseInt(params['id'], 10);
+      this.loadStockData();
+      this.loadHardwareTypes();
+    });
   }
 
   private loadHardwareTypes(): void {
@@ -433,73 +425,35 @@ export class VehiculeStockComponent implements OnInit {
   }
 
   public onConfirmAdd(): void {
-    if (this.selectedAddItem && this.addQuantity > 0) {
-      this.adding = true;
-      
-      // Vérification et conversion des IDs
-      const itemId = this.selectedAddItem.Id || '';
-      
-      if (!itemId) {
-        console.error('ID de l\'item invalide:', this.selectedAddItem);
+    if (!this.selectedAddItem || !this.addQuantity) return;
+
+    this.adding = true;
+    this.stockService.addItemToVehicleStock(
+      this.vehicleId,
+      parseInt(this.selectedAddItem.Id, 10),
+      this.addQuantity
+    ).pipe(
+      finalize(() => this.adding = false)
+    ).subscribe({
+      next: () => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Succès',
+          detail: 'Article ajouté au stock'
+        });
+        this.showAddDialog = false;
+        this.loadStockData();
+        this.resetAddForm();
+      },
+      error: (error) => {
+        console.error('Erreur lors de l\'ajout:', error);
         this.messageService.add({
           severity: 'error',
           summary: 'Erreur',
-          detail: 'ID de l\'item invalide'
+          detail: 'Impossible d\'ajouter l\'article au stock'
         });
-        this.adding = false;
-        return;
       }
-
-      console.log('Données avant envoi:', {
-        vehicleId: this.vehicleId,
-        itemId: itemId,
-        quantity: this.addQuantity,
-        selectedItem: this.selectedAddItem
-      });
-
-      this.stockService.addItemToStockCar(
-        this.vehicleId,
-        itemId,
-        this.addQuantity
-      ).subscribe({
-        next: (response: any) => {
-          console.log('Réponse API:', response);
-          if (response.Status === 200) {
-            this.messageService.add({
-              severity: 'success',
-              summary: 'Succès',
-              detail: 'Article ajouté au stock avec succès'
-            });
-            this.loadStockData();
-            this.onCancelAdd();
-          } else {
-            console.error('Erreur API:', response);
-            this.messageService.add({
-              severity: 'error',
-              summary: 'Erreur',
-              detail: response.ErrorMessage || 'Erreur lors de l\'ajout au stock'
-            });
-          }
-          this.adding = false;
-        },
-        error: (error: any) => {
-          console.error('Erreur complète:', error);
-          console.error('Corps de la réponse:', error.error);
-          console.error('Statut HTTP:', error.status);
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Erreur',
-            detail: error.error?.ErrorMessage || 'Erreur lors de l\'ajout au stock'
-          });
-          this.adding = false;
-        }
-      });
-    } else {
-      console.log('Validation échouée:', {
-        selectedAddItem: this.selectedAddItem,
-        addQuantity: this.addQuantity
-      });
-    }
+    });
   }
 
   public onConfirmRetrait(): void {
@@ -516,10 +470,9 @@ export class VehiculeStockComponent implements OnInit {
     this.loading = true;
 
     this.stockService.removeItemFromVehicleStock(
-      parseInt(this.vehicleId),
-      parseInt(this.selectedItem.id),
-      formValue.quantity,
-      formValue.client
+      this.vehicleId,
+      parseInt(this.selectedItem.id, 10),
+      formValue.quantity
     )
     .pipe(finalize(() => {
       this.loading = false;
@@ -531,7 +484,7 @@ export class VehiculeStockComponent implements OnInit {
         this.messageService.add({
           severity: 'success',
           summary: 'Succès',
-          detail: 'Article retiré du stock avec succès'
+          detail: `Article retiré du stock (Client: ${formValue.client})`
         });
         this.loadStockData();
       },
@@ -616,46 +569,35 @@ export class VehiculeStockComponent implements OnInit {
   }
 
   public confirmRemove(): void {
-    if (this.selectedItem && this.isRemoveValid()) {
-      this.removing = true;
-      
-      console.log('Retrait du stock :', {
-        idCar: this.vehicleId,
-        idItem: this.selectedItem.id,
-        quantity: this.removeQuantity,
-        remarque: this.clientName
-      });
+    if (!this.selectedItem || !this.removeQuantity || !this.clientName) return;
 
-      this.stockService.removeItemFromVehicleStock(
-        this.vehicleId,
-        this.selectedItem.id,
-        this.removeQuantity,
-        this.clientName
-      )
-      .pipe(finalize(() => {
-        this.removing = false;
+    this.removing = true;
+    this.stockService.removeItemFromVehicleStock(
+      this.vehicleId,
+      parseInt(this.selectedItem.id, 10),
+      this.removeQuantity
+    ).pipe(
+      finalize(() => this.removing = false)
+    ).subscribe({
+      next: () => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Succès',
+          detail: `Article retiré du stock (Client: ${this.clientName})`
+        });
         this.showRemoveDialog = false;
-      }))
-      .subscribe({
-        next: (response) => {
-          console.log('Réponse du retrait:', response);
-          this.messageService.add({
-            severity: 'success',
-            summary: 'Succès',
-            detail: 'Article retiré du stock'
-          });
-          this.loadStockData();
-        },
-        error: (error) => {
-          console.error('Erreur lors du retrait du stock:', error);
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Erreur',
-            detail: error.error?.Message || 'Impossible de retirer l\'article du stock'
-          });
-        }
-      });
-    }
+        this.loadStockData();
+        this.resetRemoveForm();
+      },
+      error: (error) => {
+        console.error('Erreur lors du retrait:', error);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Erreur',
+          detail: 'Impossible de retirer l\'article du stock'
+        });
+      }
+    });
   }
 
   public openAddDialog(): void {
@@ -670,5 +612,18 @@ export class VehiculeStockComponent implements OnInit {
     return !!this.selectedType && 
            !!this.selectedAddItem && 
            this.addQuantity > 0;
+  }
+
+  private resetAddForm(): void {
+    this.selectedType = null;
+    this.selectedAddItem = null;
+    this.addQuantity = 1;
+    this.availableItems = [];
+  }
+
+  private resetRemoveForm(): void {
+    this.selectedItem = null;
+    this.removeQuantity = 1;
+    this.clientName = '';
   }
 } 

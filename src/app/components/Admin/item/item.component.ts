@@ -17,6 +17,9 @@ export class ItemComponent implements OnInit {
   items: Item[] = [];
   hardwareTypes: HardwareType[] = [];
   showAddDialog: boolean = false;
+  selectedHardwareType: string | null = null;
+  filteredItems: Item[] = [];
+  
   metiers: any[] = [
     { label: '📡 Intrusion', value: 'intrusion' },
     { label: '🔥 Incendie', value: 'incendie' },
@@ -63,6 +66,7 @@ export class ItemComponent implements OnInit {
     this.itemService.getItems().subscribe({
       next: (items) => {
         this.items = items;
+        this.filteredItems = items;
         this.loading = false;
       },
       error: (error) => {
@@ -79,16 +83,11 @@ export class ItemComponent implements OnInit {
 
   loadHardwareTypes() {
     this.hardwareTypeService.listHardwareTypes().subscribe({
-      next: (types) => {
+      next: (types: HardwareType[]) => {
         this.hardwareTypes = types;
       },
-      error: (error) => {
-        console.error('Erreur lors du chargement des types:', error);
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Erreur',
-          detail: 'Impossible de charger les types de matériel'
-        });
+      error: (error: Error) => {
+        console.error('Erreur lors du chargement des types de matériel:', error);
       }
     });
   }
@@ -111,6 +110,16 @@ export class ItemComponent implements OnInit {
       { label: 'Badgeuse', value: 'badgeuse' },
       { label: 'Détecteur', value: 'detecteur' }
     ];
+  }
+
+  onHardwareTypeChange(event: any) {
+    if (!event.value) {
+      this.filteredItems = this.items;
+    } else {
+      this.filteredItems = this.items.filter(item => 
+        item.IdHardwareType === event.value
+      );
+    }
   }
 
   openAddDialog() {

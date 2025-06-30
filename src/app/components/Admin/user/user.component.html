@@ -67,121 +67,63 @@
     </div>
 </div>
 
-<!-- Dialog pour ajouter/modifier un utilisateur -->
+<!-- Dialog d'ajout/modification -->
 <p-dialog 
-    header="{{isEditMode ? 'Modifier' : 'Ajouter'}} un Utilisateur" 
     [(visible)]="showDialog" 
+    [header]="isEditMode ? 'Modifier un utilisateur' : 'Ajouter un utilisateur'"
     [modal]="true" 
-    [style]="{width: '50vw'}"
-    [closable]="true">
+    [style]="{width: '450px'}"
+    [draggable]="false"
+    [resizable]="false">
     
     <form [formGroup]="userForm" (ngSubmit)="saveUser()">
         <div class="p-fluid">
-            <div class="p-field mb-3">
+            <div class="field">
                 <label for="name">Nom *</label>
-                <input 
-                    pInputText 
-                    id="name" 
-                    formControlName="name" 
-                    placeholder="Ex: Jean Dupont">
+                <input id="name" type="text" pInputText formControlName="name">
                 <small class="p-error" *ngIf="userForm.get('name')?.invalid && userForm.get('name')?.touched">
                     Le nom est requis
                 </small>
             </div>
-            
-            <div class="p-field mb-3">
+
+            <div class="field">
                 <label for="firstName">Prénom</label>
-                <input 
-                    pInputText 
-                    id="firstName" 
-                    formControlName="firstName" 
-                    placeholder="Ex: Jean">
+                <input id="firstName" type="text" pInputText formControlName="firstName">
             </div>
 
-            <div class="p-field mb-3">
+            <div class="field">
                 <label for="nickName">Surnom (max 4 caractères)</label>
-                <input 
-                    pInputText 
-                    id="nickName" 
-                    formControlName="nickName" 
-                    maxlength="4"
-                    placeholder="Ex: JD">
+                <input id="nickName" type="text" pInputText formControlName="nickName" maxlength="4">
                 <small class="p-error" *ngIf="userForm.get('nickName')?.errors?.['maxlength']">
                     Le surnom ne doit pas dépasser 4 caractères
                 </small>
             </div>
-            
-            <div class="p-field mb-3">
+
+            <div class="field">
                 <label for="email">Email *</label>
-                <input 
-                    pInputText 
-                    id="email" 
-                    formControlName="email" 
-                    type="email"
-                    placeholder="Ex: jean.dupont@email.com">
-                <small class="p-error" *ngIf="userForm.get('email')?.invalid && userForm.get('email')?.touched">
-                    Email invalide
+                <input id="email" type="text" pInputText formControlName="email">
+                <small class="p-error" *ngIf="userForm.get('email')?.errors?.['required'] && userForm.get('email')?.touched">
+                    L'email est requis
+                </small>
+                <small class="p-error" *ngIf="userForm.get('email')?.errors?.['email'] && userForm.get('email')?.touched">
+                    Format d'email invalide
                 </small>
             </div>
 
-            <div class="p-field mb-3">
+            <div class="field">
                 <label for="role">Rôle *</label>
-                <p-dropdown
-                    id="role"
-                    formControlName="role"
-                    [options]="roles"
-                    placeholder="Sélectionnez un rôle">
-                </p-dropdown>
-                <small class="p-error" *ngIf="userForm.get('role')?.invalid && userForm.get('role')?.touched">
-                    Le rôle est requis
-                </small>
-            </div>
-            
-            <!-- Champ mot de passe -->
-            <div class="p-field mb-3">
-                <label for="password">{{isEditMode ? 'Nouveau mot de passe (optionnel)' : 'Mot de passe *'}}</label>
-                <p-password 
-                    id="password" 
-                    formControlName="password"
-                    [toggleMask]="true"
-                    [feedback]="true"
-                    promptLabel="Entrez un mot de passe"
-                    weakLabel="Trop simple"
-                    mediumLabel="Moyen"
-                    strongLabel="Complexe"
-                    [placeholder]="isEditMode ? 'Laissez vide pour conserver l\'ancien' : 'Entrez un mot de passe'">
-                </p-password>
-                <small class="p-error" *ngIf="userForm.get('password')?.invalid && userForm.get('password')?.touched">
-                    <span *ngIf="userForm.get('password')?.errors?.['required']">Le mot de passe est requis</span>
-                    <span *ngIf="userForm.get('password')?.errors?.['minlength']">Le mot de passe doit contenir au moins 6 caractères</span>
-                </small>
+                <p-dropdown id="role" [options]="roles" formControlName="role" [style]="{'width':'100%'}"></p-dropdown>
             </div>
 
-            <div class="p-field mb-3" *ngIf="isEditMode">
+            <div class="field" *ngIf="isEditMode">
                 <label for="active">Statut</label>
-                <p-dropdown
-                    id="active"
-                    formControlName="active"
-                    [options]="statuts"
-                    optionLabel="label"
-                    optionValue="value">
-                </p-dropdown>
+                <p-dropdown id="active" [options]="statuts" formControlName="active" optionLabel="label" optionValue="value" [style]="{'width':'100%'}"></p-dropdown>
             </div>
         </div>
-        
+
         <div class="p-dialog-footer">
-            <p-button 
-                label="Annuler" 
-                icon="pi pi-times" 
-                (onClick)="hideDialog()"
-                styleClass="p-button-text">
-            </p-button>
-            <p-button 
-                label="{{isEditMode ? 'Modifier' : 'Ajouter'}}" 
-                icon="pi pi-check" 
-                type="submit"
-                [disabled]="userForm.invalid">
-            </p-button>
+            <button pButton type="button" label="Annuler" icon="pi pi-times" class="p-button-text" (click)="hideDialog()"></button>
+            <button pButton type="submit" label="Enregistrer" icon="pi pi-check" [disabled]="!userForm.valid"></button>
         </div>
     </form>
 </p-dialog>

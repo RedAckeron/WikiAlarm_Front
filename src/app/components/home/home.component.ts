@@ -19,6 +19,7 @@ export class HomeComponent implements OnInit {
   isConnected = false;
   todaySummary: any[] = [];
   currentDate: string = '';
+  errorMessage: string = '';
 
   constructor(
     private fb: FormBuilder,
@@ -34,6 +35,13 @@ export class HomeComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    // Vérifier si l'utilisateur est déjà connecté
+    const token = sessionStorage.getItem('IdUser');
+    if (token) {
+      this.isConnected = true;
+      this.loadTodaySummaryFromAPI();
+    }
+
     this.authService.IsConnected.subscribe({
       next: (value: Boolean) => {
         this.isConnected = !!value;
@@ -132,14 +140,32 @@ export class HomeComponent implements OnInit {
 
   onSubmit() {
     if (this.loginForm.invalid) {
+      // Marquer tous les champs comme touchés pour afficher les erreurs
+      Object.keys(this.loginForm.controls).forEach(key => {
+        const control = this.loginForm.get(key);
+        control?.markAsTouched();
+      });
+
+      // Afficher un message d'erreur
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Erreur de validation',
+        detail: 'Veuillez remplir tous les champs correctement',
+        life: 5000
+      });
       return;
     }
 
     this.loading = true;
-    const userForm: UserFormLogin = this.loginForm.value;
+    const userForm: UserFormLogin = {
+      Email: this.loginForm.get('Email')?.value,
+      Password: this.loginForm.get('Password')?.value
+    };
+
     this.authService.login(userForm).subscribe({
       next: (response) => {
         this.loading = false;
+        this.isConnected = true;
         
         // Affiche le message de succès de l'API
         this.messageService.add({
@@ -150,7 +176,6 @@ export class HomeComponent implements OnInit {
         });
 
         this.loadTodaySummaryFromAPI();
-        this.router.navigate(['/']);
       },
       error: (error) => {
         this.loading = false;

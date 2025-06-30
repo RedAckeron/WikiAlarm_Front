@@ -1,60 +1,50 @@
 <div class="container">
 
    <div class="login-container" *ngIf="!isConnected">
-      <p-card header="Connexion" styleClass="login-card">
-         <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-            <div class="p-fluid">
-               <div class="field">
-                  <label for="Email">Email</label>
-                  <span class="p-input-icon-left">
-                     <i class="pi pi-envelope"></i>
-                     <input 
-                        id="Email" 
-                        type="email" 
-                        pInputText 
-                        formControlName="Email"
-                        [ngClass]="{'ng-invalid ng-dirty': loginForm.get('Email')?.invalid && loginForm.get('Email')?.touched}"
-                     >
-                  </span>
-                  <small class="p-error" *ngIf="loginForm.get('Email')?.invalid && loginForm.get('Email')?.touched">
-                     <span *ngIf="loginForm.get('Email')?.errors?.['required']">L'email est requis.</span>
-                     <span *ngIf="loginForm.get('Email')?.errors?.['email']">Format d'email invalide.</span>
-                  </small>
-               </div>
-
-               <div class="field">
-                  <label for="Password">Mot de passe</label>
-                  <span class="p-input-icon-left">
-                     <i class="pi pi-lock"></i>
-                     <p-password 
-                        id="Password" 
-                        formControlName="Password"
-                        [feedback]="false"
-                        [toggleMask]="true"
-                        [ngClass]="{'ng-invalid ng-dirty': loginForm.get('Password')?.invalid && loginForm.get('Password')?.touched}"
-                     ></p-password>
-                  </span>
-                  <small class="p-error" *ngIf="loginForm.get('Password')?.invalid && loginForm.get('Password')?.touched">
-                     <span *ngIf="loginForm.get('Password')?.errors?.['required']">Le mot de passe est requis.</span>
-                     <span *ngIf="loginForm.get('Password')?.errors?.['minlength']">Le mot de passe doit contenir au moins 6 caractères.</span>
-                  </small>
-               </div>
-
-               <div class="field">
-                  <p-button 
-                     type="submit" 
-                     label="Se connecter" 
-                     icon="pi pi-sign-in" 
-                     [loading]="loading"
-                     [disabled]="loginForm.invalid"
-                  ></p-button>
-               </div>
-            </div>
-         </form>
-         <div class="register-link" style="margin-top: 1rem; text-align: center;">
-            <button pButton type="button" label="Créer un compte" (click)="goToRegister()"></button>
+      <div class="login-box">
+         <div class="logo-container">
+            <img src="assets/img/LogoBanner.gif" alt="WikiAlarm" class="logo">
          </div>
-      </p-card>
+
+         <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+            <div class="form-field">
+               <label for="Email">Email</label>
+               <input 
+                  id="Email" 
+                  type="email" 
+                  formControlName="Email" 
+                  class="form-input"
+               >
+            </div>
+
+            <div class="form-field">
+               <label for="Password">Mot de passe</label>
+               <input 
+                  id="Password" 
+                  type="password" 
+                  formControlName="Password" 
+                  class="form-input"
+               >
+            </div>
+
+            <button type="submit" class="login-button" [disabled]="loading">
+               Se connecter
+            </button>
+         </form>
+
+         <div class="footer">
+            Created by RedLife - KeyProd 2023
+         </div>
+
+         <div *ngIf="errorMessage" class="error-toast">
+            <div class="error-icon">⚠</div>
+            <div class="error-content">
+               <div class="error-title">Accès refusé</div>
+               <div class="error-message">Veuillez vous connecter pour accéder à cette page</div>
+            </div>
+            <button class="close-button" (click)="errorMessage = ''">×</button>
+         </div>
+      </div>
    </div>
 
    <div class="connected-content" *ngIf="isConnected">

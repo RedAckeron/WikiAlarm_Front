@@ -7,6 +7,7 @@ import { UserService } from 'src/app/services/user.service';
 import { TokenService } from 'src/app/services/token.service';
 import { Subscription } from 'rxjs';
 import { finalize } from 'rxjs/operators';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-profil',
@@ -34,7 +35,8 @@ export class ProfilComponent implements OnInit, OnDestroy {
     private authService: AuthService,
     private userService: UserService,
     private tokenService: TokenService,
-    private formBuilder: FormBuilder
+    private formBuilder: FormBuilder,
+    public router: Router
   ) {}
 
   ngOnInit(): void {

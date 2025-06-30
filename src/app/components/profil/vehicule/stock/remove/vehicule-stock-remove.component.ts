@@ -207,7 +207,7 @@ export class VehiculeStockRemoveComponent implements OnInit {
 
   private loadStockData(vehicleId: string, itemId: string): void {
     this.loading = true;
-    this.stockService.getStockByCar(vehicleId)
+    this.stockService.getStockByCar(parseInt(vehicleId, 10))
       .pipe(finalize(() => this.loading = false))
       .subscribe({
         next: (response) => {
@@ -250,36 +250,14 @@ export class VehiculeStockRemoveComponent implements OnInit {
 
   public onSubmit(): void {
     if (this.removeForm.valid && this.item) {
-      const vehicleId = this.route.snapshot.paramMap.get('id');
-      if (!vehicleId) {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Erreur',
-          detail: 'ID du véhicule manquant'
-        });
-        return;
-      }
-
-      const quantity = this.removeForm.get('quantity')?.value;
-      const client = this.removeForm.get('client')?.value;
+      const vehicleId = parseInt(this.route.snapshot.paramMap.get('id') || '0', 10);
+      const formValue = this.removeForm.value;
       
       this.submitting = true;
-      
-      // Conversion des IDs en nombres
-      const idCar = parseInt(vehicleId);
-      
-      console.log('Retrait du stock :', {
-        idCar,
-        idItem: this.item.id,
-        quantity,
-        client
-      });
-
       this.stockService.removeItemFromVehicleStock(
-        idCar,
+        vehicleId,
         this.item.id,
-        quantity,
-        client
+        formValue.quantity
       )
       .pipe(finalize(() => this.submitting = false))
       .subscribe({

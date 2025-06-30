@@ -229,3 +229,61 @@ $background-light: #f9fafb;
     }
   }
 }
+
+// Styles pour les informations du véhicule
+.vehicle-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+
+  .brand {
+    font-weight: 500;
+    color: $text-primary;
+  }
+
+  .model {
+    color: $text-secondary;
+    font-size: 0.9rem;
+  }
+}
+
+// Styles pour les boutons
+.button-container {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: nowrap;
+  padding-left: 0;
+
+  .custom-button {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    height: auto;
+    
+    .p-button-icon {
+      font-size: 0.75rem;
+      margin-right: 0.25rem;
+    }
+  }
+}
+
+// Ajustement du tableau pour éviter le défilement horizontal
+:host ::ng-deep {
+  .p-datatable {
+    .p-datatable-wrapper {
+      overflow-x: hidden;
+    }
+    
+    .p-datatable-tbody > tr > td {
+      word-break: break-word;
+      padding: 0.5rem 1rem;
+    }
+
+    .p-button {
+      &.custom-button {
+        .p-button-label {
+          font-size: 0.75rem;
+        }
+      }
+    }
+  }
+}

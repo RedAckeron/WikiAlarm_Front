@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, map, catchError, of, tap } from 'rxjs';
+import { Observable, map, catchError, of, tap, throwError } from 'rxjs';
 import { environment } from 'src/environments/environment';
 
 export interface Entreprise {
@@ -509,91 +509,18 @@ export class CalendrierService {
    */
   getDayCalendar(date?: string): Observable<ApiResponse<any>> {
     const body = {
-      ApiKey: this.getApiKey(),
-      ...(date && { date })
+      ApiKey: sessionStorage.getItem('apiKey'),
+      date: date
     };
-
-    console.log('=== APPEL get_day_calendar ===');
-    console.log('Corps de la requête:', body);
     
-    return this.http.post<ApiResponse<any>>(`${this.apiUrl}/?route=entreprise/get_day_calendar`, body).pipe(
-      tap(response => {
-        console.log('=== RÉPONSE get_day_calendar ===');
-        console.log('Response complète:', response);
-        console.log('JsonResult:', response.JsonResult);
-        console.log('Type de JsonResult:', typeof response.JsonResult);
-      })
-    );
+    return this.http.post<ApiResponse<any>>(`${this.apiUrl}?route=calendrier/get_day_calendar`, body);
   }
 
   /**
-   * Charge les affectations du jour depuis l'API
-   */
-  loadTodayAffectationsFromAPI(): Observable<any[]> {
-    const today = new Date();
-    const todayStr = this.formatDateForAPI(today);
-    
-    return this.getDayCalendar(todayStr).pipe(
-      map((response: ApiResponse<any>) => {
-        if (response.Status === 200 && response.JsonResult) {
-          return this.processTodayAffectations(response.JsonResult);
-        }
-        return [];
-      }),
-      catchError(error => {
-        console.error('Erreur lors du chargement des affectations du jour:', error);
-        // Fallback sur les données locales si erreur
-        return of(this.getTodayAffectationsSummary());
-      })
-    );
-  }
-
-  /**
-   * Traite les données de l'API pour créer un résumé des affectations du jour
-   */
-  private processTodayAffectations(dayData: any): any[] {
-    console.log('=== TRAITEMENT AFFECTATIONS DU JOUR ===');
-    console.log('Données reçues:', dayData);
-    
-    // NOUVEAU FORMAT API 2.0 : utilisateurs avec plannings détaillés
-    if (dayData.utilisateurs && Array.isArray(dayData.utilisateurs)) {
-      console.log('Format détecté: nouveau format API 2.0 - utilisateurs avec plannings');
-      return this.processNewFormatUtilisateurs(dayData.utilisateurs);
-    }
-    
-    // Ancien format : utilisateurs_affecter
-    if (dayData.utilisateurs_affecter && Array.isArray(dayData.utilisateurs_affecter)) {
-      console.log('Format détecté: ancien format - utilisateurs_affecter');
-      return this.processUtilisateursAffecter(dayData.utilisateurs_affecter, dayData);
-    }
-    
-    // Si c'est un tableau d'entreprises (très ancien format)
-    if (Array.isArray(dayData)) {
-      console.log('Format détecté: très ancien format - array d\'entreprises');
-      return this.processTodayAffectationsArray(dayData);
-    }
-    
-    // Si c'est un objet avec des propriétés entreprises
-    if (dayData.entreprises || dayData.calendar || dayData.affectations) {
-      const entreprises = dayData.entreprises || dayData.calendar || dayData.affectations;
-      console.log('Format détecté: ancien format - objet avec entreprises');
-      return this.processTodayAffectationsArray(entreprises);
-    }
-    
-    // Si c'est un format différent, essayer de l'adapter
-    console.log('Format non reconnu:', dayData);
-    return [];
-  }
-
-  /**
-   * Traite le nouveau format API 2.0 avec utilisateurs et plannings détaillés
+   * Traite le format API avec utilisateurs et plannings
    */
   private processNewFormatUtilisateurs(utilisateurs: any[]): any[] {
-    console.log('=== TRAITEMENT NOUVEAU FORMAT UTILISATEURS ===');
-    console.log('Utilisateurs reçus:', utilisateurs);
-    
-    if (utilisateurs.length === 0) {
-      console.log('Aucun utilisateur affecté aujourd\'hui');
+    if (!utilisateurs || utilisateurs.length === 0) {
       return [];
     }
 
@@ -601,8 +528,6 @@ export class CalendrierService {
     const affectationsParEntreprise: {[key: string]: any} = {};
     
     utilisateurs.forEach((utilisateur: any) => {
-      console.log('Traitement utilisateur:', utilisateur);
-      
       const user = utilisateur.user;
       const plannings = utilisateur.plannings || [];
       
@@ -615,217 +540,89 @@ export class CalendrierService {
           affectationsParEntreprise[entrepriseKey] = {
             entreprise: entreprise.nom,
             couleur: entreprise.couleur || '#007bff',
-            horaireDefaut: this.formatHoraires(planning.horaires_entreprise),
-            joursActivite: [1,2,3,4,5], // Par défaut
             employes: []
           };
         }
         
-        // Horaires spécifiques du planning ou ceux de l'entreprise
-        const horaires = planning.horaires_planning || planning.horaires_entreprise;
-        const horaireText = this.formatHoraires(horaires);
-        
-        // Ajouter l'employé
+        // Ajouter l'employé avec le nom complet dans le champ 'nom'
         affectationsParEntreprise[entrepriseKey].employes.push({
-          nom: user.nom,
-          horaire: horaireText,
-          isException: false
+          id: user.id,
+          prenom: '', // On laisse prenom vide
+          nom: user.nom, // On met le nom complet dans nom
+          heureDebut: planning.heureDebut,
+          heureFin: planning.heureFin,
+          isException: planning.isException || false
         });
       });
     });
     
-    const result = Object.values(affectationsParEntreprise);
-    console.log('Résultat final des affectations (nouveau format):', result);
-    return result;
+    // Convertir en format attendu par le template
+    return Object.entries(affectationsParEntreprise).map(([_, value]) => ({
+      entreprise: value.entreprise,
+      couleur: value.couleur,
+      employes: value.employes.sort((a: { nom: string }, b: { nom: string }) => 
+        a.nom.localeCompare(b.nom)
+      )
+    }));
   }
 
   /**
-   * Formate les horaires depuis l'objet horaires de l'API
+   * Charge les affectations du jour depuis l'API
    */
-  private formatHoraires(horaires: any): string {
-    if (horaires && horaires.debut && horaires.fin) {
-      return `${horaires.debut} - ${horaires.fin}`;
-    }
-    // Fallback sur format raw si disponible
-    if (horaires && horaires.debut_raw && horaires.fin_raw) {
-      const debut = this.convertTimeFromAPI(horaires.debut_raw);
-      const fin = this.convertTimeFromAPI(horaires.fin_raw);
-      return `${debut} - ${fin}`;
-    }
-    // Horaire par défaut
-    return '08:00 - 16:30';
+  loadTodayAffectationsFromAPI(): Observable<any[]> {
+    const today = new Date().toISOString().split('T')[0];
+    return this.loadDayAffectationsFromAPI(new Date(today));
   }
 
-  /**
-   * Traite les utilisateurs affectés directement (nouveau format API)
-   */
-  private processUtilisateursAffecter(utilisateursAffecter: any[], dayData: any): any[] {
-    console.log('=== TRAITEMENT UTILISATEURS AFFECTER ===');
-    console.log('Utilisateurs affectés:', utilisateursAffecter);
-    
-    if (utilisateursAffecter.length === 0) {
-      console.log('Aucun utilisateur affecté aujourd\'hui');
-      return [];
-    }
+  loadDayAffectationsFromAPI(date: Date): Observable<any[]> {
+    const formattedDate = this.formatDateForAPI(date);
+    const body = {
+      ApiKey: sessionStorage.getItem('apiKey'),
+      date: formattedDate
+    };
 
-    // Créer un résumé groupé par entreprise
-    const affectationsParEntreprise: {[key: string]: any} = {};
-    
-    utilisateursAffecter.forEach((userAffectation: any) => {
-      console.log('Traitement utilisateur:', userAffectation);
-      
-      // Pour l'instant, on va créer une entreprise générique car l'API ne retourne pas les détails d'entreprise
-      const entrepriseKey = 'entreprise_generale';
-      
-      if (!affectationsParEntreprise[entrepriseKey]) {
-        affectationsParEntreprise[entrepriseKey] = {
-          entreprise: 'Affectations du jour',
-          couleur: '#007bff',
-          horaireDefaut: this.getHoraireFromDayData(dayData),
-          joursActivite: [1,2,3,4,5],
-          employes: []
-        };
-      }
-      
-      // Trouver le nom complet de l'utilisateur
-      const userId = userAffectation.user_id;
-      const userName = userAffectation.userName || `Utilisateur ${userId}`;
-      
-      // Ajouter l'employé
-      affectationsParEntreprise[entrepriseKey].employes.push({
-        nom: userName,
-        horaire: this.getHoraireFromDayData(dayData),
-        isException: false
-      });
-    });
-    
-    const result = Object.values(affectationsParEntreprise);
-    console.log('Résultat final des affectations:', result);
-    return result;
-  }
+    console.log('=== CHARGEMENT DES AFFECTATIONS DU JOUR ===');
+    console.log('Date demandée:', date);
+    console.log('Date formatée:', formattedDate);
+    console.log('ApiKey:', body.ApiKey);
 
-  /**
-   * Extrait les horaires depuis les données du jour
-   */
-  private getHoraireFromDayData(dayData: any): string {
-    if (dayData.horaires_entreprise) {
-      const horaires = dayData.horaires_entreprise;
-      if (horaires.debut && horaires.fin) {
-        const debut = this.convertTimeFromAPI(horaires.debut);
-        const fin = this.convertTimeFromAPI(horaires.fin);
-        return `${debut} - ${fin}`;
-      }
-    }
-    
-    // Horaire par défaut
-    return '08:00 - 16:30';
-  }
-
-  private processTodayAffectationsArray(dayData: any[]): any[] {
-    const affectationsParEntreprise: {[key: string]: any} = {};
-    
-    dayData.forEach((entrepriseData: any) => {
-      if (!entrepriseData.entreprise && !entrepriseData.nom) return;
-      
-      const entreprise = entrepriseData.entreprise || entrepriseData;
-      const key = entreprise.id?.toString() || entreprise.nom || Math.random().toString();
-      
-      // Initialiser l'entreprise si pas encore fait
-      if (!affectationsParEntreprise[key]) {
-        affectationsParEntreprise[key] = {
-          entreprise: entreprise.nom || 'Entreprise inconnue',
-          couleur: entreprise.couleur || '#808080',
-          horaireDefaut: this.getDefaultScheduleText(entreprise),
-          joursActivite: entreprise.joursActivite || [1,2,3,4,5],
-          employes: []
-        };
-      }
-      
-      // Traiter les affectations du jour
-      this.processEntrepriseAffectations(entrepriseData, affectationsParEntreprise[key]);
-    });
-    
-    // Filtrer les entreprises qui ont des employés aujourd'hui
-    return Object.values(affectationsParEntreprise).filter((entreprise: any) => 
-      entreprise.employes.length > 0
+    return this.getDayCalendar(formattedDate).pipe(
+      map((response: ApiResponse<any>) => {
+        console.log('=== RÉPONSE DE L\'API ===');
+        console.log('Status:', response.Status);
+        console.log('Message:', response.Message);
+        console.log('JsonResult:', response.JsonResult);
+        
+        if (response.Status === 200 && response.JsonResult) {
+          const affectations = this.processTodayAffectations(response.JsonResult);
+          console.log('Affectations traitées:', affectations);
+          return affectations;
+        }
+        return [];
+      }),
+      catchError(error => {
+        console.error('Erreur lors du chargement des affectations du jour:', error);
+        return of([]);
+      })
     );
   }
 
-  private getDefaultScheduleText(entreprise: any): string {
-    if (entreprise.horaires) {
-      const debut = this.convertTimeFromAPI(entreprise.horaires.debut || '0800');
-      const fin = this.convertTimeFromAPI(entreprise.horaires.fin || '1630');
-      return `${debut} - ${fin}`;
-    }
-    if (entreprise.heureDebut && entreprise.heureFin) {
-      return `${entreprise.heureDebut} - ${entreprise.heureFin}`;
-    }
-    return '08:00 - 16:30';
-  }
-
-  private processEntrepriseAffectations(entrepriseData: any, entrepriseResult: any) {
-    // Traiter les affectations normales
-    if (entrepriseData.affectations && Array.isArray(entrepriseData.affectations)) {
-      entrepriseData.affectations.forEach((affectation: any) => {
-        if (affectation.user && affectation.actif) {
-          this.addEmployeToResult(affectation, entrepriseResult, false);
-        }
-      });
+  /**
+   * Traite les données de l'API pour créer un résumé des affectations du jour
+   */
+  private processTodayAffectations(dayData: any): any[] {
+    console.log('=== TRAITEMENT AFFECTATIONS DU JOUR ===');
+    console.log('Données reçues:', dayData);
+    
+    // Format API 2.0 : utilisateurs avec plannings détaillés
+    if (dayData.utilisateurs && Array.isArray(dayData.utilisateurs)) {
+      console.log('Format détecté: format API 2.0 - utilisateurs avec plannings');
+      return this.processNewFormatUtilisateurs(dayData.utilisateurs);
     }
     
-    // Traiter les plannings de la journée
-    if (entrepriseData.planning && Array.isArray(entrepriseData.planning)) {
-      entrepriseData.planning.forEach((planning: any) => {
-        if (planning.user && planning.actif && planning.travaille) {
-          this.addEmployeToResult(planning, entrepriseResult, false);
-        }
-      });
-    }
-    
-    // Traiter les affectations spéciales/exceptions
-    if (entrepriseData.exceptions && Array.isArray(entrepriseData.exceptions)) {
-      entrepriseData.exceptions.forEach((exception: any) => {
-        if (exception.user) {
-          this.addEmployeToResult(exception, entrepriseResult, true);
-        }
-      });
-    }
-    
-    // Traiter les utilisateurs directement listés
-    if (entrepriseData.users && Array.isArray(entrepriseData.users)) {
-      entrepriseData.users.forEach((user: any) => {
-        if (user.id || user.user) {
-          this.addEmployeToResult(user, entrepriseResult, false);
-        }
-      });
-    }
-  }
-
-  private addEmployeToResult(userData: any, entrepriseResult: any, isException: boolean) {
-    const userId = userData.user || userData.id || userData.userId;
-    const utilisateur = this.utilisateursCache.find(u => u.id.toString() === userId.toString());
-    const userName = utilisateur ? `${utilisateur.prenom} ${utilisateur.nom}`.trim() : 
-                   userData.userName || userData.nom || `Utilisateur ${userId}`;
-    
-    // Formater les horaires
-    let horaireText = '';
-    if (userData.horaires?.debut && userData.horaires?.fin) {
-      horaireText = `${this.convertTimeFromAPI(userData.horaires.debut)}-${this.convertTimeFromAPI(userData.horaires.fin)}`;
-    } else if (userData.heureDebut && userData.heureFin) {
-      horaireText = `${userData.heureDebut}-${userData.heureFin}`;
-    } else {
-      horaireText = entrepriseResult.horaireDefaut;
-    }
-    
-    // Éviter les doublons
-    const existingEmploye = entrepriseResult.employes.find((emp: any) => emp.nom === userName);
-    if (!existingEmploye) {
-      entrepriseResult.employes.push({
-        nom: userName,
-        horaire: horaireText,
-        isException: isException
-      });
-    }
+    // Si aucun format reconnu, retourner un tableau vide
+    console.log('Format non reconnu:', dayData);
+    return [];
   }
 
   // === GESTION DES UTILISATEURS ===

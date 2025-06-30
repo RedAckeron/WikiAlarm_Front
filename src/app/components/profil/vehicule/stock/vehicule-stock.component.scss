@@ -1,0 +1,425 @@
+// Variables
+$primary-color: #3b82f6;
+$success-color: #22c55e;
+$warning-color: #f59e0b;
+$info-color: #3b82f6;
+$danger-color: #ef4444;
+$text-primary: #1f2937;
+$text-secondary: #6b7280;
+$border-color: #e5e7eb;
+$background-light: #f9fafb;
+
+// Mixins
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin card-shadow {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+// Styles principaux
+.vehicle-container {
+  padding: 1rem;
+
+  .card {
+    background: white;
+    border-radius: 0.5rem;
+    @include card-shadow;
+    border: 1px solid $border-color;
+
+    .card-header {
+      padding: 1rem;
+      border-bottom: 1px solid $border-color;
+      background: $background-light;
+
+      h5 {
+        margin: 0;
+        color: $text-primary;
+        font-weight: 600;
+
+        i {
+          margin-right: 0.5rem;
+        }
+      }
+    }
+
+    .card-body {
+      padding: 1rem;
+    }
+  }
+}
+
+// États de chargement
+.loading-state {
+  @include flex-center;
+  flex-direction: column;
+  padding: 2rem;
+  color: $text-secondary;
+}
+
+// Styles pour les informations d'article
+.item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+
+  .item-name {
+    font-weight: 500;
+    color: $text-primary;
+    font-size: 0.875rem;
+  }
+
+  .item-description {
+    color: $text-secondary;
+    font-size: 0.75rem;
+  }
+}
+
+// Styles pour les boutons
+.button-container {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: nowrap;
+  padding-left: 0;
+
+  .custom-button {
+    font-size: 0.75rem;
+    padding: 0.15rem 0.5rem;
+    height: 1.75rem;
+    
+    .p-button-icon {
+      font-size: 0.75rem;
+      margin-right: 0.25rem;
+    }
+  }
+}
+
+// Styles pour les badges de statut
+.status-badge {
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+
+  &.status-success {
+    background-color: rgba($success-color, 0.1);
+    color: $success-color;
+  }
+
+  &.status-danger {
+    background-color: rgba($danger-color, 0.1);
+    color: $danger-color;
+  }
+}
+
+// Ajustements pour les dialogues
+:host ::ng-deep {
+  .p-dialog {
+    .p-dialog-header {
+      background: $background-light;
+      padding: 1.25rem;
+      border-bottom: 1px solid $border-color;
+    }
+
+    .p-dialog-content {
+      padding: 1.25rem;
+    }
+
+    .p-dialog-footer {
+      padding: 1rem 1.25rem;
+      background: $background-light;
+      border-top: 1px solid $border-color;
+    }
+  }
+
+  // Styles pour les tableaux
+  .p-datatable {
+    &.compact-table {
+      .p-datatable-wrapper {
+        overflow-x: hidden;
+      }
+      
+      .p-datatable-thead > tr > th {
+        padding: 0.5rem 0.5rem;
+        font-size: 0.875rem;
+        background-color: $background-light;
+        border-bottom: 1px solid $border-color;
+        white-space: nowrap;
+
+        &:first-child {
+          padding-left: 0.75rem;
+        }
+      }
+
+      .p-datatable-tbody > tr {
+        > td {
+          padding: 0.35rem 0.5rem;
+          font-size: 0.875rem;
+          border-bottom: 1px solid $border-color;
+          vertical-align: middle;
+          height: 2.5rem;
+          white-space: nowrap;
+
+          &.reference-cell {
+            font-weight: 500;
+            color: $text-primary;
+            padding-left: 0.75rem;
+          }
+
+          .p-button.p-button-rounded {
+            width: 1.75rem;
+            height: 1.75rem;
+            padding: 0;
+
+            .p-button-icon {
+              font-size: 0.75rem;
+            }
+          }
+        }
+
+        &:last-child > td {
+          border-bottom: none;
+        }
+      }
+    }
+  }
+}
+
+// Styles responsifs
+@media screen and (max-width: 768px) {
+  .vehicle-container {
+    padding: 0.5rem;
+  }
+
+  .button-container {
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 0.25rem;
+  }
+
+  :host ::ng-deep {
+    .p-datatable.compact-table {
+      .p-datatable-tbody > tr > td {
+        padding: 0.25rem;
+        
+        &.reference-cell {
+          padding-left: 0.5rem;
+        }
+      }
+    }
+  }
+}
+
+// Utilisation des mixins globaux
+.stock-container {
+  padding: 0.5rem;
+  
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+
+    h2 {
+      margin: 0;
+      font-size: 1.25rem;
+    }
+
+    @include desktop {
+      margin-bottom: 1.5rem;
+      gap: 1rem;
+
+      h2 {
+        font-size: 1.5rem;
+      }
+    }
+  }
+
+  .loading-container {
+    display: flex;
+    justify-content: center;
+    padding: 1rem;
+
+    @include desktop {
+      padding: 2rem;
+    }
+  }
+
+  .content {
+    background: white;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+
+    @include desktop {
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    ::ng-deep {
+      .stock-table {
+        width: 100%;
+
+        .quantity-column {
+          width: 80px;
+          text-align: center;
+        }
+
+        .action-column {
+          width: 80px;
+          text-align: center;
+        }
+
+        .article-column {
+          width: auto;
+        }
+
+        .p-datatable-wrapper {
+          border: none;
+        }
+
+        .p-datatable-header {
+          background: transparent;
+          border: none;
+          padding: 0.75rem;
+
+          @include desktop {
+            padding: 1rem;
+          }
+        }
+
+        // Version mobile : affichage en carte
+        @include mobile {
+          .p-datatable-thead {
+            display: none;
+          }
+
+          .p-datatable-tbody > tr {
+            display: grid;
+            grid-template-columns: 80px 80px 1fr;
+            gap: 0.5rem;
+            padding: 0.75rem;
+            border-bottom: 1px solid #dee2e6;
+            align-items: center;
+
+            > td {
+              padding: 0.5rem !important;
+              border: none !important;
+
+              &.quantity-column {
+                text-align: center;
+                font-weight: 500;
+              }
+
+              &.action-column {
+                text-align: center;
+              }
+
+              &.article-column {
+                grid-column: 1 / -1;
+                padding-top: 0.5rem !important;
+              }
+            }
+
+            &:last-child {
+              border-bottom: none;
+            }
+          }
+        }
+
+        // Version desktop : affichage en tableau
+        @include desktop {
+          .p-datatable-thead > tr > th {
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid #dee2e6;
+            color: #495057;
+            font-weight: 600;
+            padding: 1rem;
+
+            &.quantity-column,
+            &.action-column {
+              text-align: center;
+            }
+          }
+
+          .p-datatable-tbody > tr {
+            border: none;
+            
+            &:nth-child(even) {
+              background: #f8f9fa;
+            }
+
+            > td {
+              border: none;
+              border-bottom: 1px solid #dee2e6;
+              padding: 1rem;
+
+              &.quantity-column,
+              &.action-column {
+                text-align: center;
+              }
+            }
+
+            &:last-child > td {
+              border-bottom: none;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// Styles pour les dialogues
+::ng-deep {
+  .p-dialog {
+    @include mobile {
+      width: 95vw !important;
+      max-height: 95vh;
+      margin: 0 auto;
+
+      .p-dialog-content {
+        padding: 1rem;
+      }
+    }
+
+    @include desktop {
+      .p-dialog-header {
+        padding: 1.5rem;
+        background: #f8f9fa;
+        border-bottom: 1px solid #dee2e6;
+      }
+
+      .p-dialog-content {
+        padding: 1.5rem;
+      }
+    }
+
+    .dialog-content {
+      .field {
+        margin-bottom: 1rem;
+
+        @include desktop {
+          margin-bottom: 1.5rem;
+        }
+
+        label {
+          display: block;
+          margin-bottom: 0.5rem;
+          font-weight: 500;
+        }
+      }
+    }
+
+    .dialog-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.5rem;
+    }
+  }
+} 

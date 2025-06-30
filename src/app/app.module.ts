@@ -23,11 +23,6 @@ import { DropdownModule } from 'primeng/dropdown';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { CheckboxModule } from 'primeng/checkbox';
 import { TestComponent } from './components/test/test.component';
-import { ProfilComponent } from './components/profil/profil.component';
-import { IntrusionComponent } from './components/Wiki/intrusion/intrusion.component';
-import { IncendieComponent } from './components/Wiki/incendie/incendie.component';
-import { CtrlaccesComponent } from './components/Wiki/ctrlacces/ctrlacces.component';
-import { CctvComponent } from './components/Wiki/cctv/cctv.component';
 import { StockComponent } from './components/profil/stock/stock.component';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { CardModule } from 'primeng/card';
@@ -37,33 +32,29 @@ import { HomeModule } from './components/home/home.module';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { RegisterModule } from './components/Auth/register/register.module';
 import { LobbyComponent } from './components/Admin/lobby/lobby.component';
-import { VehiculeComponent } from './components/profil/vehicule/vehicule.component';
 import { CarModule } from './components/Admin/car/car.module';
 import { UserModule } from './components/Admin/user/user.module';
-import { ItemComponent } from './components/Admin/item/item.component';
-import { StockUserComponent } from './components/Admin/stock-user/stock-user.component';
-import { StockCarComponent } from './components/Admin/stock-car/stock-car.component';
 import { ItemModule } from './components/Admin/item/item.module';
 import { TypeMaterielModule } from './components/Admin/item/type-materiel.module';
 import { VehiculeModule } from './components/profil/vehicule/vehicule.module';
-import { CalendrierComponent } from './components/calendrier/calendrier.component';
+import { CalendrierModule } from './components/calendrier/calendrier.module';
 import { CalendrierComponent as AdminCalendrierComponent } from './components/Admin/calendrier/calendrier.component';
+import { ReloadService } from './services/reload.service';
+import { LoginModule } from './components/Auth/login/login.module';
+import { StockUserModule } from './components/Admin/stock-user/stock-user.module';
+import { NavbarModule } from './shared/components/navbar/navbar.module';
+import { TooltipModule } from 'primeng/tooltip';
+import { ProfilModule } from './components/profil/profil.module';
+import { WikiModule } from './components/Wiki/wiki.module';
 
 @NgModule({
   schemas:[CUSTOM_ELEMENTS_SCHEMA],
   declarations: [
     AppComponent,
-    NavbarComponent,
     FooterComponent,
-    LoginComponent,
     TestComponent,
-    ProfilComponent,
     StockComponent,
     LobbyComponent,
-    ItemComponent,
-    StockUserComponent,
-    StockCarComponent,
-    CalendrierComponent,
     AdminCalendrierComponent
   ],
   imports: [
@@ -98,12 +89,17 @@ import { CalendrierComponent as AdminCalendrierComponent } from './components/Ad
     ItemModule,
     TypeMaterielModule,
     VehiculeModule,
-    IntrusionComponent,
-    IncendieComponent,
-    CtrlaccesComponent,
-    CctvComponent
+    LoginModule,
+    StockUserModule,
+    NavbarModule,
+    TooltipModule,
+    ProfilModule,
+    CalendrierModule,
+    WikiModule
   ],
-  providers: [MessageService, ConfirmationService, DatePipe],
+  providers: [MessageService, ConfirmationService, DatePipe, ReloadService],
   bootstrap: [AppComponent]
 })
-export class AppModule { }
+export class AppModule {
+  constructor(private reloadService: ReloadService) {}
+}

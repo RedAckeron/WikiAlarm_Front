@@ -6,10 +6,15 @@ import { ButtonModule } from 'primeng/button';
 import { ToastModule } from 'primeng/toast';
 import { InputTextModule } from 'primeng/inputtext';
 import { InputTextareaModule } from 'primeng/inputtextarea';
+import { TableModule } from 'primeng/table';
+import { TagModule } from 'primeng/tag';
+import { DialogModule } from 'primeng/dialog';
+import { ItemComponent } from './item.component';
 import { ItemAddComponent } from './item-add.component';
 
 @NgModule({
   declarations: [
+    ItemComponent,
     ItemAddComponent
   ],
   imports: [
@@ -19,9 +24,13 @@ import { ItemAddComponent } from './item-add.component';
     ButtonModule,
     ToastModule,
     InputTextModule,
-    InputTextareaModule
+    InputTextareaModule,
+    TableModule,
+    TagModule,
+    DialogModule
   ],
   exports: [
+    ItemComponent,
     ItemAddComponent
   ]
 })

@@ -1,53 +1,62 @@
-<div style="color: red; font-weight: bold;">TEST MODIF VEHICULE STOCK</div>
-
-<div class="stock-container">
-  <div class="header">
-    <h2>Stock du véhicule</h2>
-    <div class="actions">
-      <button pButton type="button" 
+<div class="vehicle-container">
+  <div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h5 class="mb-0">
+        <i class="pi pi-box text-primary"></i>
+        Stock du véhicule
+      </h5>
+      <button pButton 
+              type="button" 
               icon="pi pi-plus" 
-              label="Ajouter un article" 
-              class="p-button-success mr-2" 
+              label="Ajouter un article"
+              class="p-button-success p-button-sm"
               (click)="onAddItem()"></button>
-      <button pButton type="button" 
-              icon="pi pi-history" 
-              label="Historique" 
-              class="p-button-info" 
-              (click)="onViewHistory()"></button>
     </div>
-  </div>
 
-  <div *ngIf="loading" class="loading-container">
-    <p-progressSpinner styleClass="w-4rem h-4rem" strokeWidth="8" fill="var(--surface-ground)" animationDuration=".5s"></p-progressSpinner>
-  </div>
+    <div class="card-body">
+      <!-- État de chargement -->
+      <div *ngIf="loading" class="loading-state text-center p-4">
+        <p-progressSpinner></p-progressSpinner>
+        <p class="mt-3">Chargement du stock...</p>
+      </div>
 
-  <div *ngIf="!loading && stockItems.length === 0" class="empty-state">
-    <p>Aucun article dans le stock</p>
-  </div>
+      <!-- Message si aucun article -->
+      <div *ngIf="!loading && stockItems.length === 0" class="alert alert-info text-center p-4">
+        <i class="pi pi-info-circle" style="font-size: 2rem;"></i>
+        <p class="mt-3">Aucun article dans le stock de ce véhicule.</p>
+      </div>
 
-  <div *ngIf="!loading && stockItems.length > 0" class="stock-table">
-    <p-table [value]="stockItems" [tableStyle]="{ 'min-width': '50rem' }">
-      <ng-template pTemplate="header">
-        <tr>
-          <th>Article</th>
-          <th>Quantité</th>
-          <th>Actions</th>
-        </tr>
-      </ng-template>
-      <ng-template pTemplate="body" let-item>
-        <tr>
-          <td>{{item.Label}}</td>
-          <td>{{item.Qt}}</td>
-          <td>
-            <button pButton type="button" 
-                    icon="pi pi-minus" 
-                    class="p-button-danger p-button-rounded p-button-text" 
-                    (click)="onRetireItem(item)"
-                    [disabled]="item.Qt <= 0"></button>
-          </td>
-        </tr>
-      </ng-template>
-    </p-table>
+      <!-- Tableau du stock -->
+      <div *ngIf="!loading && stockItems.length > 0">
+        <p-table [value]="stockItems" 
+                 styleClass="p-datatable-striped p-datatable-sm compact-table">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Référence</th>
+              <th>Nom</th>
+              <th style="width: 80px" class="text-center">Quantité</th>
+              <th style="width: 60px" class="text-center">Actions</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-item>
+            <tr>
+              <td class="reference-cell">{{item.Label}}</td>
+              <td>{{item.Name}}</td>
+              <td class="text-center">{{item.Qt}}</td>
+              <td class="text-center p-0">
+                <button pButton 
+                        type="button" 
+                        icon="pi pi-minus" 
+                        class="p-button-danger p-button-sm p-button-rounded"
+                        (click)="onRetireItem(item)"
+                        [disabled]="item.Qt <= 0"
+                        pTooltip="Retirer du stock"></button>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -59,7 +68,7 @@
           [draggable]="false" 
           [resizable]="false">
   <div class="p-fluid">
-    <div class="field">
+    <div class="field mb-3">
       <label for="type">Type de matériel</label>
       <p-dropdown id="type"
                   [options]="materialTypes" 
@@ -74,7 +83,7 @@
       </p-dropdown>
     </div>
 
-    <div class="field">
+    <div class="field mb-3">
       <label for="item">Article</label>
       <p-dropdown id="item"
                   [options]="filteredItems" 
@@ -91,7 +100,7 @@
       </p-dropdown>
     </div>
 
-    <div class="field">
+    <div class="field mb-3">
       <label for="quantity">Quantité</label>
       <p-inputNumber id="quantity" 
                      [(ngModel)]="addQuantity" 
@@ -129,7 +138,9 @@
           [style]="{width: '800px'}" 
           [draggable]="false" 
           [resizable]="false">
-  <p-table [value]="stockHistory" [tableStyle]="{ 'min-width': '50rem' }">
+  <p-table [value]="stockHistory" 
+           [tableStyle]="{ 'min-width': '50rem' }"
+           styleClass="p-datatable-striped">
     <ng-template pTemplate="header">
       <tr>
         <th>Date</th>
@@ -143,7 +154,7 @@
       <tr>
         <td>{{history.Date | date:'dd/MM/yyyy HH:mm'}}</td>
         <td>{{history.Label}}</td>
-        <td>{{history.Qt}}</td>
+        <td class="text-center">{{history.Qt}}</td>
         <td>
           <span [class]="history.Type === 'ajout' ? 'status-badge status-success' : 'status-badge status-danger'">
             {{history.Type === 'ajout' ? 'Ajout' : 'Retrait'}}

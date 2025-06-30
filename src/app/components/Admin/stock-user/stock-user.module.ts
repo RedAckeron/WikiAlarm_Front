@@ -1,40 +1,36 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { CarRoutingModule } from './car-routing.module';
-import { CarComponent } from './car.component';
+import { FormsModule } from '@angular/forms';
+import { StockUserComponent } from './stock-user.component';
 
-// PrimeNG Imports
+// PrimeNG Modules
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
-import { InputTextModule } from 'primeng/inputtext';
 import { DropdownModule } from 'primeng/dropdown';
+import { InputNumberModule } from 'primeng/inputnumber';
 import { ToastModule } from 'primeng/toast';
-import { MessageService } from 'primeng/api';
+import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
-import { DialogService } from 'primeng/dynamicdialog';
 
 @NgModule({
   declarations: [
-    CarComponent
+    StockUserComponent
   ],
   imports: [
     CommonModule,
-    CarRoutingModule,
     FormsModule,
-    ReactiveFormsModule,
     TableModule,
     ButtonModule,
     DialogModule,
-    InputTextModule,
     DropdownModule,
+    InputNumberModule,
     ToastModule,
+    TagModule,
     TooltipModule
   ],
-  providers: [
-    DialogService,
-    MessageService
+  exports: [
+    StockUserComponent
   ]
 })
-export class CarModule { }
+export class StockUserModule { } 

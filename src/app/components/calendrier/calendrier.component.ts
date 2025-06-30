@@ -2,29 +2,50 @@ import { Component, OnInit, Pipe, PipeTransform } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { MessageService } from 'primeng/api';
 import { environment } from 'src/environments/environment';
+import { CalendrierService } from 'src/app/services/calendrier.service';
+import { forkJoin } from 'rxjs';
 
-interface Entreprise {
-  id: number;
-  nom: string;
-  couleur: string;
-  horairesParJour?: { [key: number]: { debut: string; fin: string; actif: boolean } };
-}
-
-interface Utilisateur {
-  id: number;
-  nom: string;
+interface Employee {
   prenom: string;
-  email: string;
+  nom: string;
 }
 
-interface Affectation {
-  id: number;
+interface ApiAffectation {
+  entreprise: string;
+  couleur: string;
+  employes: Employee[];
   date: string;
-  utilisateur: Utilisateur;
-  entreprise: Entreprise;
-  heureDebut?: string;
-  heureFin?: string;
-  isException?: boolean;
+}
+
+interface DayAffectations {
+  sas: string[];
+  dumay: string[];
+  devilder: string[];
+  raway: string[];
+  service: string[];
+  massart: string[];
+}
+
+interface WeekDay {
+  date: Date;
+  name: string;
+  isToday: boolean;
+  affectations: DayAffectations;
+}
+
+interface WeekAffectation {
+  entreprise: string;
+  couleur: string;
+  employes: Employee[];
+  daysCount: number;
+  startDate: Date;
+  endDate: Date;
+}
+
+interface ApiResponse {
+  Status: number;
+  JsonResult: any;
+  Message?: string;
 }
 
 @Pipe({
@@ -52,23 +73,21 @@ export class FilterPipe implements PipeTransform {
   selector: 'app-calendrier',
   templateUrl: './calendrier.component.html',
   styleUrls: ['./calendrier.component.scss'],
-  standalone: false
+  standalone: false,
+  providers: [MessageService]
 })
 export class CalendrierComponent implements OnInit {
   
   // Données
-  entreprises: Entreprise[] = [];
-  utilisateurs: Utilisateur[] = [];
-  affectations: Affectation[] = [];
+  affectations: ApiAffectation[] = [];
   
   // Calendrier
   currentDate = new Date();
   currentWeekStart = new Date();
-  calendarDays: any[] = [];
   
   // États
   loading = false;
-  viewMode: 'week' | 'day' = 'week'; // Vue par défaut : semaine
+  viewMode: 'week' | 'day' = 'week';
   
   // Mois et jours
   monthNames = [
@@ -78,224 +97,247 @@ export class CalendrierComponent implements OnInit {
   
   dayNames = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
 
+  weekDays: WeekDay[] = [];
+  weekStart: Date = new Date();
+  weekEnd: Date = new Date();
+  weekAffectations: WeekAffectation[] = [];
+  showWeekPicker: boolean = false;
+  selectedDate: Date = new Date();
+  frenchLocale: any = {
+    firstDayOfWeek: 1,
+    dayNames: ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"],
+    dayNamesShort: ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"],
+    dayNamesMin: ["Di", "Lu", "Ma", "Me", "Je", "Ve", "Sa"],
+    monthNames: ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"],
+    monthNamesShort: ["Jan", "Fév", "Mar", "Avr", "Mai", "Jun", "Jul", "Aoû", "Sep", "Oct", "Nov", "Déc"],
+    today: 'Aujourd\'hui',
+    clear: 'Effacer',
+    dateFormat: 'dd/mm/yy',
+    weekHeader: 'Sem.'
+  };
+
   constructor(
     private http: HttpClient,
-    private messageService: MessageService
+    private messageService: MessageService,
+    private calendrierService: CalendrierService
   ) {}
 
   ngOnInit(): void {
-    this.initializeWeekStart();
-    this.loadData();
+    this.loadCurrentWeek();
   }
 
-  initializeWeekStart() {
-    // Calculer le début de la semaine courante (dimanche)
+  loadCurrentWeek() {
     const today = new Date();
-    const dayOfWeek = today.getDay();
-    this.currentWeekStart = new Date(today);
-    this.currentWeekStart.setDate(today.getDate() - dayOfWeek);
-    this.currentWeekStart.setHours(0, 0, 0, 0);
+    this.weekStart = this.getWeekStart(today);
+    this.weekEnd = this.getWeekEnd(today);
+    this.loadWeekDays();
   }
 
-  loadData() {
+  loadWeekAffectations() {
     this.loading = true;
     const apiKey = sessionStorage.getItem('apiKey') || '';
-    
-    // Charger les entreprises
-    this.http.post<any>(`${environment.apiUrl}?route=entreprise/list`, {
-      ApiKey: apiKey
-    }).subscribe({
-      next: (response) => {
-        if (response.Status === 200) {
-          const entreprisesData = response.JsonResult?.entreprises || [];
-          this.entreprises = entreprisesData.map((item: any) => ({
-            id: item.entreprise.id,
-            nom: item.entreprise.nom,
-            couleur: item.entreprise.couleur,
-            horairesParJour: item.horairesParJour || {}
-          }));
-        }
-        this.loadAffectations();
-      },
-      error: (error) => {
-        this.loading = false;
-        console.error('Erreur lors du chargement des entreprises:', error);
-      }
-    });
-  }
 
-  loadAffectations() {
-    const apiKey = sessionStorage.getItem('apiKey') || '';
-    
-    // Charger les affectations selon la vue
-    const { startDate, endDate } = this.getDateRange();
-    
-    this.http.post<any>(`${environment.apiUrl}?route=affectation/list`, {
-      ApiKey: apiKey,
-      dateDebut: this.formatDate(startDate),
-      dateFin: this.formatDate(endDate)
-    }).subscribe({
-      next: (response) => {
-        this.loading = false;
-        if (response.Status === 200) {
-          this.affectations = response.JsonResult || [];
-          this.generateCalendar();
-        }
-      },
-      error: (error) => {
-        this.loading = false;
+    // Créer un tableau de promesses pour chaque jour de la semaine
+    const promises = this.weekDays.map(day => {
+      return this.calendrierService.loadDayAffectationsFromAPI(day.date).toPromise();
+    });
+
+    // Attendre que toutes les promesses soient résolues
+    Promise.all(promises)
+      .then(results => {
+        // Pour chaque jour, traiter les affectations
+        this.weekDays.forEach((day, index) => {
+          const dayResult = results[index];
+          if (dayResult && dayResult.length > 0) {
+            // Convertir les affectations au format attendu
+            const affectations: DayAffectations = {
+              sas: [],
+              dumay: [],
+              devilder: [],
+              raway: [],
+              service: [],
+              massart: []
+            };
+
+            dayResult.forEach(aff => {
+              const entrepriseName = aff.entreprise.toLowerCase().trim();
+              
+              // Récupérer tous les employés
+              const employeeNames = aff.employes.map((emp: Employee) => 
+                `${emp.prenom} ${emp.nom}`.trim()
+              );
+
+              if (entrepriseName === 'sas') {
+                affectations.sas = employeeNames;
+              } else if (entrepriseName === 'dumay mior') {
+                affectations.dumay = employeeNames;
+              } else if (entrepriseName === 'de vilder') {
+                affectations.devilder = employeeNames;
+              } else if (entrepriseName === 'raway') {
+                affectations.raway = employeeNames;
+              } else if (entrepriseName === 'service de garde') {
+                affectations.service = employeeNames;
+              } else if (entrepriseName === 'massart') {
+                affectations.massart = employeeNames;
+              }
+            });
+
+            day.affectations = affectations;
+          }
+        });
+
+        this.updateWeekSummary();
+      })
+      .catch(error => {
         console.error('Erreur lors du chargement des affectations:', error);
-        this.generateCalendar(); // Générer le calendrier même sans affectations
-      }
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Erreur',
+          detail: 'Impossible de charger les affectations: ' + (error.message || error),
+          life: 3000
+        });
+      })
+      .finally(() => {
+        this.loading = false;
+      });
+  }
+
+  private processWeekAffectations() {
+    const affectationsByEntreprise = new Map<string, WeekAffectation>();
+
+    // Parcourir tous les jours et leurs affectations
+    this.weekDays.forEach(day => {
+      // Récupérer les affectations du jour
+      const dayAffectations = day.affectations;
+      
+      // Si le jour a des affectations, les traiter
+      Object.entries(dayAffectations).forEach(([entreprise, userNames]) => {
+        if (userNames.length > 0) {
+          const key = entreprise;
+          
+          if (!affectationsByEntreprise.has(key)) {
+            affectationsByEntreprise.set(key, {
+              entreprise: entreprise,
+              couleur: this.getColorForEntreprise(entreprise),
+              employes: [],
+              daysCount: 1,
+              startDate: day.date,
+              endDate: day.date
+            });
+          } else {
+            const existingAffectation = affectationsByEntreprise.get(key)!;
+            existingAffectation.daysCount++;
+            
+            if (day.date < existingAffectation.startDate) {
+              existingAffectation.startDate = day.date;
+            }
+            if (day.date > existingAffectation.endDate) {
+              existingAffectation.endDate = day.date;
+            }
+          }
+        }
+      });
     });
+
+    this.weekAffectations = Array.from(affectationsByEntreprise.values())
+      .filter(aff => aff.daysCount > 1)
+      .sort((a, b) => b.daysCount - a.daysCount);
   }
 
-  getDateRange(): { startDate: Date, endDate: Date } {
-    if (this.viewMode === 'day') {
-      // Vue jour : seulement le jour courant
-      const startDate = new Date(this.currentDate);
-      const endDate = new Date(this.currentDate);
-      return { startDate, endDate };
-    } else {
-      // Vue semaine : 7 jours à partir du début de semaine
-      const startDate = new Date(this.currentWeekStart);
-      const endDate = new Date(this.currentWeekStart);
-      endDate.setDate(startDate.getDate() + 6);
-      return { startDate, endDate };
+  private getColorForEntreprise(entreprise: string): string {
+    switch (entreprise.toLowerCase()) {
+      case 'sas':
+        return '#e83e8c';  // Rose
+      case 'dumay':
+        return '#007bff';  // Bleu
+      case 'devilder':
+        return '#6c757d';  // Gris
+      case 'raway':
+        return '#6c757d';  // Gris
+      case 'service':
+        return '#ffc107';  // Jaune
+      case 'massart':
+        return '#6c757d';  // Gris
+      default:
+        return '#6c757d';  // Gris par défaut
     }
   }
 
-  generateCalendar() {
-    this.calendarDays = [];
-    
-    if (this.viewMode === 'day') {
-      // Vue jour : un seul jour
-      const dayData = {
-        date: new Date(this.currentDate),
-        dateString: this.formatDate(this.currentDate),
-        isToday: this.isToday(this.currentDate),
-        affectations: this.getAffectationsForDate(this.currentDate)
-      };
-      this.calendarDays.push(dayData);
-    } else {
-      // Vue semaine : 7 jours
-      for (let i = 0; i < 7; i++) {
-        const date = new Date(this.currentWeekStart);
-        date.setDate(this.currentWeekStart.getDate() + i);
-        
-        const dayData = {
-          date: date,
-          dateString: this.formatDate(date),
-          isToday: this.isToday(date),
-          affectations: this.getAffectationsForDate(date)
-        };
-        
-        this.calendarDays.push(dayData);
-      }
-    }
+  updateWeekSummary() {
+    // Pas besoin de mettre à jour le résumé car les affectations sont déjà à jour
+    // après le chargement des données de chaque jour
   }
 
-  getAffectationsForDate(date: Date): Affectation[] {
-    const dateString = this.formatDate(date);
-    return this.affectations.filter(affectation => 
-      affectation.date === dateString
-    );
+  private formatDate(date: Date): string {
+    const d = new Date(date);
+    let month = '' + (d.getMonth() + 1);
+    let day = '' + d.getDate();
+    const year = d.getFullYear();
+
+    if (month.length < 2) month = '0' + month;
+    if (day.length < 2) day = '0' + day;
+
+    return [year, month, day].join('-');
   }
 
-  formatDate(date: Date): string {
-    return date.toISOString().split('T')[0];
+  private isSameDay(date1: Date, date2: Date): boolean {
+    return date1.getDate() === date2.getDate() &&
+           date1.getMonth() === date2.getMonth() &&
+           date1.getFullYear() === date2.getFullYear();
   }
 
-  isToday(date: Date): boolean {
+  previousWeek() {
+    this.weekStart.setDate(this.weekStart.getDate() - 7);
+    this.weekEnd.setDate(this.weekEnd.getDate() - 7);
+    this.loadWeekDays();
+  }
+
+  nextWeek() {
+    this.weekStart.setDate(this.weekStart.getDate() + 7);
+    this.weekEnd.setDate(this.weekEnd.getDate() + 7);
+    this.loadWeekDays();
+  }
+
+  private getDayName(day: number): string {
+    return this.dayNames[day];
+  }
+
+  private getWeekStart(date: Date): Date {
+    const d = new Date(date);
+    const day = d.getDay();
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+    return new Date(d.setDate(diff));
+  }
+
+  private getWeekEnd(date: Date): Date {
+    const d = new Date(date);
+    const day = d.getDay();
+    const diff = d.getDate() - day + (day === 0 ? 0 : 7);
+    return new Date(d.setDate(diff));
+  }
+
+  private loadWeekDays() {
+    this.weekDays = [];
+    const currentDate = new Date(this.weekStart);
     const today = new Date();
-    return date.toDateString() === today.toDateString();
-  }
 
-  previousPeriod() {
-    if (this.viewMode === 'day') {
-      // Jour précédent
-      this.currentDate.setDate(this.currentDate.getDate() - 1);
-    } else {
-      // Semaine précédente
-      this.currentWeekStart.setDate(this.currentWeekStart.getDate() - 7);
+    for (let i = 0; i < 7; i++) {
+      this.weekDays.push({
+        name: this.getDayName(currentDate.getDay()),
+        date: new Date(currentDate),
+        isToday: this.isSameDay(currentDate, today),
+        affectations: {
+          sas: [],
+          dumay: [],
+          devilder: [],
+          raway: [],
+          service: [],
+          massart: []
+        }
+      });
+      currentDate.setDate(currentDate.getDate() + 1);
     }
-    this.loadAffectations();
-  }
-
-  nextPeriod() {
-    if (this.viewMode === 'day') {
-      // Jour suivant
-      this.currentDate.setDate(this.currentDate.getDate() + 1);
-    } else {
-      // Semaine suivante
-      this.currentWeekStart.setDate(this.currentWeekStart.getDate() + 7);
-    }
-    this.loadAffectations();
-  }
-
-  goToToday() {
-    const today = new Date();
-    this.currentDate = new Date(today);
-    this.initializeWeekStart();
-    this.loadAffectations();
-  }
-
-  switchViewMode(mode: 'week' | 'day') {
-    this.viewMode = mode;
-    if (mode === 'day') {
-      this.currentDate = new Date(); // Aller au jour courant
-    } else {
-      this.initializeWeekStart(); // Aller à la semaine courante
-    }
-    this.loadAffectations();
-  }
-
-  getWeekDateRange(): string {
-    const endDate = new Date(this.currentWeekStart);
-    endDate.setDate(this.currentWeekStart.getDate() + 6);
     
-    const startStr = this.currentWeekStart.toLocaleDateString('fr-FR', { 
-      day: 'numeric', 
-      month: 'short' 
-    });
-    const endStr = endDate.toLocaleDateString('fr-FR', { 
-      day: 'numeric', 
-      month: 'short', 
-      year: 'numeric' 
-    });
-    
-    return `${startStr} - ${endStr}`;
-  }
-
-  getCurrentDateStr(): string {
-    return this.currentDate.toLocaleDateString('fr-FR', { 
-      weekday: 'long',
-      day: 'numeric', 
-      month: 'long', 
-      year: 'numeric' 
-    });
-  }
-
-  getEntrepriseById(id: number): Entreprise | undefined {
-    return this.entreprises.find(e => e.id === id);
-  }
-
-  getAffectationsByEntreprise(affectations: Affectation[]): { [key: string]: Affectation[] } {
-    const grouped: { [key: string]: Affectation[] } = {};
-    
-    affectations.forEach(affectation => {
-      const entrepriseNom = affectation.entreprise.nom;
-      if (!grouped[entrepriseNom]) {
-        grouped[entrepriseNom] = [];
-      }
-      grouped[entrepriseNom].push(affectation);
-    });
-    
-    return grouped;
-  }
-
-  // Méthode de filtrage pour le template
-  filterAffectationsByEntreprise(affectations: Affectation[], entrepriseId: number): Affectation[] {
-    return affectations.filter(affectation => affectation.entreprise.id === entrepriseId);
+    this.loadWeekAffectations();
   }
 }

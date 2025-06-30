@@ -1,23 +1,20 @@
 import { AbstractControl, ValidationErrors } from "@angular/forms";
 
-export function Kp_EmailValidator(control:AbstractControl):ValidationErrors | null
-{
-let error:ValidationErrors;
-if (control.value)
-  {
-    if (/^([a-zA-Z0-9_\-\.]+)@([a-zA-Z0-9_\-\.]+)\.([a-zA-Z]{2,5})$/)
-    {
-      error={message:"Votre Email est incorrect"}
-      return error;
-    }
+export function Kp_EmailValidator(control: AbstractControl): ValidationErrors | null {
+  if (!control.value) {
+    return null;
   }
-if(control.value.length<=5)
-{
-  error={message:"Votre Email est trop court"}
-      return error;
-}
-return null
- 
 
+  const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
+  
+  if (!emailRegex.test(control.value)) {
+    return { invalidEmail: true, message: "Format d'email incorrect" };
+  }
+
+  if (control.value.length <= 5) {
+    return { tooShort: true, message: "L'email est trop court" };
+  }
+
+  return null;
 }
 

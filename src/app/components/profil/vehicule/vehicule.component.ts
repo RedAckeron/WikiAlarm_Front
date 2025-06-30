@@ -70,7 +70,7 @@ export class VehiculeComponent implements OnInit, OnDestroy {
 
   // Chargement des données
   private loadVehicules(): void {
-    const idUser = sessionStorage.getItem('IdUser');
+    const idUser = sessionStorage.getItem('userId');
     if (!idUser) {
       this.handleNoUser();
       return;
@@ -80,12 +80,44 @@ export class VehiculeComponent implements OnInit, OnDestroy {
     const vehiculeSub = this.carService.getCarsByUser(idUser).pipe(
       finalize(() => this.loading = false)
     ).subscribe({
-      next: (res) => {
-        this.vehicules = res.JsonResult || [];
+      next: (response: any) => {
+        console.log('Réponse API véhicules:', response);
+        if (response && response.Status === 200) {
+          // La réponse contient le tableau de véhicules dans JsonResult
+          this.vehicules = (response.JsonResult || []).map((vehicle: any) => ({
+            Id: vehicle.Id,
+            Marque: vehicle.Marque,
+            MarqueModele: vehicle.MarqueModele,
+            Immatriculation: vehicle.Immatriculation,
+            Km: parseInt(vehicle.Km, 10),
+            IdUserOwner: vehicle.IdUserOwner,
+            IsActive: vehicle.IsActive
+          }));
+
+          if (this.vehicules.length === 0) {
+            this.messageService.add({
+              severity: 'info',
+              summary: 'Information',
+              detail: 'Aucun véhicule ne vous est actuellement assigné.'
+            });
+          } else {
+            console.log('Véhicules chargés:', this.vehicules);
+          }
+        } else {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Erreur',
+            detail: response?.Message || 'Impossible de charger les véhicules'
+          });
+        }
       },
-      error: () => {
-        this.vehicules = [];
-        this.showError('Erreur lors du chargement des véhicules');
+      error: (error: any) => {
+        console.error('Erreur lors du chargement des véhicules:', error);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Erreur',
+          detail: 'Erreur lors de la communication avec le serveur'
+        });
       }
     });
     this.subscriptions.push(vehiculeSub);
@@ -118,7 +150,7 @@ export class VehiculeComponent implements OnInit, OnDestroy {
 
   private loadStockData(vehiculeId: string): void {
     this.loadingStock = true;
-    const stockSub = this.stockService.getStockByCar(vehiculeId)
+    const stockSub = this.stockService.getStockByCar(parseInt(vehiculeId, 10))
       .pipe(finalize(() => this.loadingStock = false))
       .subscribe({
         next: (response) => {
@@ -152,25 +184,30 @@ export class VehiculeComponent implements OnInit, OnDestroy {
     this.loadStockData(vehicule.Id.toString());
   }
 
-  // Soumission des formulaires
-  public submitCarPass(): void {
-    if (!this.carPassForm.valid || !this.selectedVehicule) {
-      this.showError('Veuillez remplir correctement tous les champs');
-      return;
+  // Gestion du CarPass
+  public saveCarPass(): void {
+    if (this.carPassForm.valid && this.selectedVehicule) {
+      const formData = this.carPassForm.value;
+      
+      // Simulation de la mise à jour - À remplacer par un appel API réel
+      setTimeout(() => {
+        // Mise à jour du kilométrage dans la liste des véhicules
+        const index = this.vehicules.findIndex(v => v.Id === this.selectedVehicule?.Id);
+        if (index !== -1) {
+          this.vehicules[index].Km = formData.kilometrage;
+        }
+
+        // Ajout de l'entrée dans l'historique
+        this.carPassHistory.unshift({
+          date: new Date().toISOString(),
+          kilometrage: formData.kilometrage,
+          occasion: formData.occasion
+        });
+
+        this.showSuccess('CarPass mis à jour avec succès');
+        this.displayCarPassDialog = false;
+      }, 500);
     }
-
-    const updateData = {
-      vehiculeId: this.selectedVehicule.Id,
-      ...this.carPassForm.value
-    };
-
-    // TODO: Implémenter l'appel API pour la mise à jour
-    console.log('Mise à jour du kilométrage:', updateData);
-    
-    // Simuler une mise à jour réussie
-    this.showSuccess('Kilométrage mis à jour avec succès');
-    this.displayCarPassDialog = false;
-    this.carPassForm.reset();
   }
 
   // Utilitaires

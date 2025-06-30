@@ -12,11 +12,9 @@ import { TokenService } from './token.service';
 })
 export class AuthService {
 
-  private _isConnected : BehaviorSubject<Boolean> = new BehaviorSubject<Boolean>(false);
-
-  get IsConnected() : BehaviorSubject<Boolean>
-  {
-   return this._isConnected;
+  private _isConnected = new BehaviorSubject<boolean>(false);
+  get IsConnected() {
+    return this._isConnected.asObservable();
   }
 
   private _UserSubject : BehaviorSubject<User|null>
@@ -53,8 +51,13 @@ export class AuthService {
 
   login(userform:UserFormLogin):Observable<any>
     {
+    // Validation des données
+    if (!userform.Email || !userform.Password) {
+      return throwError(() => new Error('Email et mot de passe requis'));
+    }
+
     return this._httpClient.post<any>(environment.apiUrl + '?route=user/login',{
-      email: userform.Email,
+      email: userform.Email.toLowerCase(),
       password: userform.Password
     })
     .pipe(map(response => {
@@ -63,6 +66,7 @@ export class AuthService {
             const user = response.JsonResult;
             console.log('User data from API:', user); // Debug log
             this._tokenService.saveToken(user.Id.toString());
+            sessionStorage.setItem('userId', user.Id.toString());
             sessionStorage.setItem('Email', user.Email || '');
             sessionStorage.setItem('FirstName', user.Name || '');
             sessionStorage.setItem('apiKey', user.ApiKey || '');
@@ -78,7 +82,7 @@ export class AuthService {
               sessionStorage.removeItem('hasDefaultPassword');
             }
             
-            this.IsConnected.next(true);
+            this._isConnected.next(true);
             // Retourne l'utilisateur ET le message
             return { ...user, Message: response.Message };
           }
@@ -105,7 +109,7 @@ export class AuthService {
           sessionStorage.setItem('Email', response.JsonResult.email || '');
           sessionStorage.setItem('FirstName', response.JsonResult.firstName || '');
           sessionStorage.setItem('apiKey', response.JsonResult.apiKey || '');
-          this.IsConnected.next(true);
+          this._isConnected.next(true);
 
           return {
             id: response.JsonResult.id,
@@ -126,14 +130,14 @@ export class AuthService {
 
   logout()
     {
-    sessionStorage.removeItem("IdUser");
+    sessionStorage.removeItem("userId");
     sessionStorage.removeItem("Email");
     sessionStorage.removeItem("FirstName");
     sessionStorage.removeItem("apiKey");
     sessionStorage.removeItem("userRole");
     sessionStorage.removeItem("hasDefaultPassword");
     sessionStorage.removeItem("userActive");
-    this.IsConnected.next(false);
+    this._isConnected.next(false);
     }
 
   GetById(id: number): Observable<any> {

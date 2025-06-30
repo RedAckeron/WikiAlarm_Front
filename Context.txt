@@ -1,0 +1,5 @@
+- L application que je construit est un outil pour m aider dans ma fonction de technicien en system d alarme
+- l aide pour les routes est ici : http://85.201.40.87/.api/WikiAlarm/?route=help
+- toutes les routes doivent etre fais en POST et avoir un json qui contient l apikey qui est en session storrage
+- L application dois exister en 2 taille , une pour pc et une pour smartphone
+- On ne touche pas aux variables d environement 

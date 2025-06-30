@@ -12,6 +12,7 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { ToastModule } from 'primeng/toast';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { TooltipModule } from 'primeng/tooltip';
+import { InputTextModule } from 'primeng/inputtext';
 import { MessageService } from 'primeng/api';
 
 // Components
@@ -51,6 +52,7 @@ const routes: Routes = [
     ToastModule,
     InputNumberModule,
     TooltipModule,
+    InputTextModule,
 
     // Standalone Components
     CarpassComponent

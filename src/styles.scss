@@ -1,7 +1,41 @@
 @import "primeng/resources/themes/lara-light-blue/theme.css";
 @import "primeng/resources/primeng.css";
+
+// Variables globales pour les breakpoints
+$breakpoint-mobile: 720px;
+
+// Mixins pour les media queries
+@mixin desktop {
+  @media (min-width: #{$breakpoint-mobile}) {
+    @content;
+  }
+}
+
+@mixin mobile {
+  @media (max-width: #{$breakpoint-mobile - 1px}) {
+    @content;
+  }
+}
+
+// Styles globaux de base (mobile-first)
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+// Styles de base pour mobile
 body {
-  font-family: var(--font-family);
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+// Styles pour desktop
+@include desktop {
+  body {
+    font-size: 16px;
+    line-height: 1.5;
+  }
 }
 
 /* You can add global styles to this file, and also import other style files */

@@ -37,7 +37,6 @@ export class UserComponent implements OnInit {
       nickName: ['', [Validators.maxLength(4)]],
       email: ['', [Validators.required, Validators.email]],
       role: ['User', Validators.required],
-      password: [''],
       active: [1]
     });
   }
@@ -70,8 +69,6 @@ export class UserComponent implements OnInit {
       role: 'User',
       active: 1
     });
-    this.userForm.get('password')?.setValidators([Validators.required, Validators.minLength(6)]);
-    this.userForm.get('password')?.updateValueAndValidity();
     this.showDialog = true;
   }
 
@@ -84,12 +81,8 @@ export class UserComponent implements OnInit {
       nickName: user.NickName,
       email: user.Email,
       role: user.Role,
-      active: user.Active,
-      password: ''
+      active: user.Active
     });
-    this.userForm.get('password')?.clearValidators();
-    this.userForm.get('password')?.setValidators(Validators.minLength(6));
-    this.userForm.get('password')?.updateValueAndValidity();
     this.showDialog = true;
   }
 
@@ -111,8 +104,9 @@ export class UserComponent implements OnInit {
         ApiKey: sessionStorage.getItem('apiKey')
       };
 
-      if (this.userForm.value.password) {
-        userData.Password = this.userForm.value.password;
+      if (!this.isEditMode) {
+        // Ajout du mot de passe par défaut lors de la création
+        userData.Password = 'WikiAlarm';
       }
 
       if (this.isEditMode) {
@@ -153,7 +147,7 @@ export class UserComponent implements OnInit {
               this.messageService.add({
                 severity: 'success',
                 summary: 'Succès',
-                detail: 'Utilisateur créé avec succès'
+                detail: 'Utilisateur créé avec succès. Mot de passe par défaut : WikiAlarm'
               });
               this.hideDialog();
               this.loadUsers();
