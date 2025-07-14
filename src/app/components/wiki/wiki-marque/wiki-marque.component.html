@@ -1,0 +1,8 @@
+<h2>Modèles pour la marque sélectionnée</h2>
+<ul>
+  <li *ngFor="let modele of modeles">
+    <a [routerLink]="['/wiki', metierName, 'marque', marqueId, 'modele', modele.Id]">{{ modele.Modele }}</a>
+  </li>
+</ul>
+
+<!-- Liste des modèles à venir --> 

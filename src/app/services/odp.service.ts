@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { Odp, OdpLight } from '../models/odp';
+import { Odp, OdpLight } from '../models/Odp';
 
 @Injectable({
   providedIn: 'root'

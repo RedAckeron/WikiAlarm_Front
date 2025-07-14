@@ -67,7 +67,7 @@ export class StockService {
       ApiKey: apiKey,
       IdCar: vehicleId
     };
-    return this.http.post(`${this.apiUrl}?route=stock/stockcar/history`, body);
+    return this.http.post('http://85.201.40.87/.api/WikiAlarm/?route=stock/stockcar/HistoryByCar', body);
   }
 
   addItemToVehicleStock(idCar: number, idItem: number, quantity: number): Observable<any> {
@@ -81,15 +81,18 @@ export class StockService {
     return this.http.post(`${this.apiUrl}?route=stock/stockcar/AddItem`, body);
   }
 
-  removeItemFromVehicleStock(idCar: number, idItem: number, quantity: number): Observable<any> {
+  removeItemFromVehicleStock(idCar: number, idItem: number, quantity: number, remarque?: string): Observable<any> {
     const apiKey = this.getApiKey();
-    const body = {
+    const body: any = {
       ApiKey: apiKey,
       IdCar: idCar,
       IdItem: idItem,
       Qt: quantity
     };
-    return this.http.post(`${this.apiUrl}?route=stock/stockcar/removeitem`, body);
+    if (remarque) {
+      body.Remarque = remarque;
+    }
+    return this.http.post(`${this.apiUrl}?route=stock/stockcar/RemoveItem`, body);
   }
 
   addItemToStockCar(idCar: number, idItem: number, quantity: number): Observable<any> {

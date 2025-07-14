@@ -1,0 +1,13 @@
+<div class="work-container">
+  <h2>Marques pour le métier : <span>{{ metierName }}</span></h2>
+  <ul>
+    <li *ngFor="let marque of marques">
+      <a [routerLink]="['/wiki', 'metier', idWork, 'marque', marque.Id]">{{ marque.Name || marque.Marque || marque.nom }}</a>
+    </li>
+  </ul>
+  <div class="ajout-marque">
+    <input type="text" placeholder="Nouvelle marque" [(ngModel)]="newMarqueName" />
+    <button pButton type="button" label="Ajouter la marque" (click)="addMarque()"></button>
+  </div>
+  <!-- Ici, tu pourras afficher dynamiquement les infos du métier -->
+</div> 

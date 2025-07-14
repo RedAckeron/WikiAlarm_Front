@@ -15,7 +15,7 @@ import { TabViewModule } from 'primeng/tabview';
 import { TagModule } from 'primeng/tag';
 import { AccordionModule} from 'primeng/accordion';
 import { MenubarModule} from 'primeng/menubar';
-import { LoginComponent } from './components/Auth/login/login.component';
+import { LoginComponent } from './components/auth/login/login.component';
 import { InputTextModule } from 'primeng/inputtext';
 import { DialogModule } from 'primeng/dialog';
 import { TableModule } from 'primeng/table';
@@ -23,37 +23,34 @@ import { DropdownModule } from 'primeng/dropdown';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { CheckboxModule } from 'primeng/checkbox';
 import { TestComponent } from './components/test/test.component';
-import { StockComponent } from './components/profil/stock/stock.component';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { CardModule } from 'primeng/card';
 import { PasswordModule } from 'primeng/password';
 import { CommonModule, DatePipe } from '@angular/common';
 import { HomeModule } from './components/home/home.module';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { RegisterModule } from './components/Auth/register/register.module';
-import { LobbyComponent } from './components/Admin/lobby/lobby.component';
-import { CarModule } from './components/Admin/car/car.module';
-import { UserModule } from './components/Admin/user/user.module';
-import { ItemModule } from './components/Admin/item/item.module';
-import { TypeMaterielModule } from './components/Admin/item/type-materiel.module';
+import { RegisterModule } from './components/auth/register/register.module';
+import { LobbyComponent } from './components/admin/lobby/lobby.component';
+import { CarModule } from './components/admin/car/car.module';
+import { UserModule } from './components/admin/user/user.module';
+import { ItemModule } from './components/admin/item/item.module';
+import { TypeMaterielModule } from './components/admin/item/type-materiel.module';
 import { VehiculeModule } from './components/profil/vehicule/vehicule.module';
 import { CalendrierModule } from './components/calendrier/calendrier.module';
-import { CalendrierComponent as AdminCalendrierComponent } from './components/Admin/calendrier/calendrier.component';
+import { CalendrierComponent as AdminCalendrierComponent } from './components/admin/calendrier/calendrier.component';
 import { ReloadService } from './services/reload.service';
-import { LoginModule } from './components/Auth/login/login.module';
-import { StockUserModule } from './components/Admin/stock-user/stock-user.module';
+import { LoginModule } from './components/auth/login/login.module';
+import { StockUserModule } from './components/admin/stock-user/stock-user.module';
 import { NavbarModule } from './shared/components/navbar/navbar.module';
 import { TooltipModule } from 'primeng/tooltip';
 import { ProfilModule } from './components/profil/profil.module';
-import { WikiModule } from './components/Wiki/wiki.module';
+import { WikiModule } from './components/wiki/wiki.module';
 
 @NgModule({
   schemas:[CUSTOM_ELEMENTS_SCHEMA],
   declarations: [
     AppComponent,
-    FooterComponent,
     TestComponent,
-    StockComponent,
     LobbyComponent,
     AdminCalendrierComponent
   ],

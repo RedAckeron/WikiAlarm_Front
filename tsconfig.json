@@ -24,6 +24,37 @@
       "dom"
     ]
   },
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.d.ts"
+  ],
+  "exclude": [
+    "src/**/*.spec.ts",
+    "src/**/*.test.ts",
+    "src/app/Validators/EmailValidator.ts",
+    "src/app/environements/environement.ts",
+    "src/app/models/CmdModel.ts",
+    "src/app/models/CurrentCustomerModel.ts",
+    "src/app/models/DlcModel.ts",
+    "src/app/models/FctModel.ts",
+    "src/app/models/Forms/UserProfil.ts",
+    "src/app/models/Odp.ts",
+    "src/app/models/Rpr.ts",
+    "src/app/models/StockItem.ts",
+    "src/app/models/Vehicle.ts",
+    "src/app/models/customerSummary.ts",
+    "src/app/models/item.ts",
+    "src/app/models/user.model.ts",
+    "src/app/services/address.service.ts",
+    "src/app/services/cmd.service.ts",
+    "src/app/services/customer.service.ts",
+    "src/app/services/dlc.service.ts",
+    "src/app/services/entreprise.service.ts",
+    "src/app/services/fct.service.ts",
+    "src/app/services/odp.service.ts",
+    "src/app/services/rpr.service.ts",
+    "src/environments/environment.prod.ts"
+  ],
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,
     "strictInjectionParameters": true,

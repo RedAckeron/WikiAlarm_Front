@@ -1,6 +1,6 @@
 import { CmdLight } from "./CmdModel";
-import { OdpLight } from "./odp";
-import { RprLight } from "./rpr";
+import { OdpLight } from "./Odp";
+import { RprLight } from "./Rpr";
 import { DlcLight } from "./DlcModel";
 import { FctLight } from "./FctModel";
 import { AdrLight } from "./AdrModel";

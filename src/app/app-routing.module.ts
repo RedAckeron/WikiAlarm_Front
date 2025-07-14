@@ -5,17 +5,16 @@ import { NotFoundComponent } from './components/not-found/not-found.component';
 import { HomeComponent } from './components/home/home.component';
 import { ProfilComponent } from './components/profil/profil.component';
 import { AuthGuard } from './guards/auth.guard';
-import { RegisterComponent } from './components/Auth/register/register.component';
-import { LobbyComponent } from './components/Admin/lobby/lobby.component';
-import { ItemComponent } from './components/Admin/item/item.component';
-import { StockUserComponent } from './components/Admin/stock-user/stock-user.component';
-import { ItemAddComponent } from './components/Admin/item/item-add.component';
-import { TypeMaterielComponent } from './components/Admin/item/type-materiel.component';
-import { TypeMaterielAddComponent } from './components/Admin/item/type-materiel-add.component';
+import { RegisterComponent } from './components/auth/register/register.component';
+import { LobbyComponent } from './components/admin/lobby/lobby.component';
+import { ItemComponent } from './components/admin/item/item.component';
+import { StockUserComponent } from './components/admin/stock-user/stock-user.component';
+import { ItemAddComponent } from './components/admin/item/item-add.component';
+import { TypeMaterielComponent } from './components/admin/item/type-materiel.component';
+import { TypeMaterielAddComponent } from './components/admin/item/type-materiel-add.component';
 import { CalendrierComponent } from './components/calendrier/calendrier.component';
-import { CalendrierComponent as AdminCalendrierComponent } from './components/Admin/calendrier/calendrier.component';
-import { LoginComponent } from './components/Auth/login/login.component';
-import { WorkComponent } from './components/Wiki/work/work.component';
+import { CalendrierComponent as AdminCalendrierComponent } from './components/admin/calendrier/calendrier.component';
+import { LoginComponent } from './components/auth/login/login.component';
 import { StockComponent } from './components/profil/stock/stock.component';
 
 const routes: Routes = [
@@ -40,18 +39,17 @@ const routes: Routes = [
   },
   {path : 'calendrier', component : CalendrierComponent, canActivate: [AuthGuard]},
   {
-    path : 'Wiki',
-    children: [
-      { path: ':metier', component: WorkComponent, canActivate: [AuthGuard] }
-    ]
+    path : 'wiki',
+    loadChildren: () => import('./components/wiki/wiki.module').then(m => m.WikiModule),
+    canActivate: [AuthGuard]
   },
   {
-    path : 'Admin', 
+    path : 'admin', 
     children: [
       {path : '', component : LobbyComponent, canActivate: [AuthGuard]},
-      {path : 'gestion-utilisateur', loadChildren: () => import('./components/Admin/user/user.module').then(m => m.UserModule), canActivate: [AuthGuard]},
-      {path : 'gestion-vehicule', loadChildren: () => import('./components/Admin/car/car.module').then(m => m.CarModule), canActivate: [AuthGuard]},
-      {path : 'gestion-entreprise', loadChildren: () => import('./components/Admin/entreprise/entreprise.module').then(m => m.EntrepriseModule), canActivate: [AuthGuard]},
+      {path : 'gestion-utilisateur', loadChildren: () => import('./components/admin/user/user.module').then(m => m.UserModule), canActivate: [AuthGuard]},
+      {path : 'gestion-vehicule', loadChildren: () => import('./components/admin/car/car.module').then(m => m.CarModule), canActivate: [AuthGuard]},
+      {path : 'gestion-entreprise', loadChildren: () => import('./components/admin/entreprise/entreprise.module').then(m => m.EntrepriseModule), canActivate: [AuthGuard]},
       {path : 'gestion-item', component : ItemComponent, canActivate: [AuthGuard]},
       {path : 'gestion-item/add', component : ItemAddComponent, canActivate: [AuthGuard]},
       {path : 'stock-utilisateur', component : StockUserComponent, canActivate: [AuthGuard]},

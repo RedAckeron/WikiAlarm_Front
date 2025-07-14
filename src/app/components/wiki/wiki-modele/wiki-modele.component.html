@@ -1,0 +1,12 @@
+<div class="work-container">
+  <h2>Modèles pour la marque : <span>{{ marqueName }}</span></h2>
+  <ul>
+    <li *ngFor="let modele of modeles">
+      <a [routerLink]="['/wiki', 'metier', idWork, 'marque', idMarque, 'modele', modele.Id]">{{ modele.Model || modele.Name || modele.Modele || modele.nom }}</a>
+    </li>
+  </ul>
+  <div class="ajout-modele">
+    <input type="text" placeholder="Nouveau modèle" [(ngModel)]="newModeleName" />
+    <button pButton type="button" label="Ajouter le modèle" (click)="addModele()"></button>
+  </div>
+</div> 

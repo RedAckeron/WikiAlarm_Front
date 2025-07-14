@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { OdpLight } from '../models/odp';
+import { OdpLight } from '../models/Odp';
 import { DlcLight } from '../models/DlcModel';
 
 @Injectable({

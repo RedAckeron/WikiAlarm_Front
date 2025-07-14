@@ -230,10 +230,9 @@ $background-light: #f9fafb;
       font-size: 1.25rem;
     }
 
-    @include desktop {
+    @media (min-width: 992px) {
       margin-bottom: 1.5rem;
       gap: 1rem;
-
       h2 {
         font-size: 1.5rem;
       }
@@ -244,10 +243,6 @@ $background-light: #f9fafb;
     display: flex;
     justify-content: center;
     padding: 1rem;
-
-    @include desktop {
-      padding: 2rem;
-    }
   }
 
   .content {
@@ -255,7 +250,7 @@ $background-light: #f9fafb;
     border-radius: 4px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 
-    @include desktop {
+    @media (min-width: 992px) {
       border-radius: 8px;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
@@ -287,13 +282,13 @@ $background-light: #f9fafb;
           border: none;
           padding: 0.75rem;
 
-          @include desktop {
+          @media (min-width: 992px) {
             padding: 1rem;
           }
         }
 
         // Version mobile : affichage en carte
-        @include mobile {
+        @media (max-width: 768px) {
           .p-datatable-thead {
             display: none;
           }
@@ -332,7 +327,7 @@ $background-light: #f9fafb;
         }
 
         // Version desktop : affichage en tableau
-        @include desktop {
+        @media (min-width: 992px) {
           .p-datatable-thead > tr > th {
             background: transparent;
             border: none;
@@ -378,7 +373,7 @@ $background-light: #f9fafb;
 // Styles pour les dialogues
 ::ng-deep {
   .p-dialog {
-    @include mobile {
+    @media (max-width: 768px) {
       width: 95vw !important;
       max-height: 95vh;
       margin: 0 auto;
@@ -388,7 +383,7 @@ $background-light: #f9fafb;
       }
     }
 
-    @include desktop {
+    @media (min-width: 992px) {
       .p-dialog-header {
         padding: 1.5rem;
         background: #f8f9fa;
@@ -404,7 +399,7 @@ $background-light: #f9fafb;
       .field {
         margin-bottom: 1rem;
 
-        @include desktop {
+        @media (min-width: 992px) {
           margin-bottom: 1.5rem;
         }
 
@@ -422,4 +417,76 @@ $background-light: #f9fafb;
       gap: 0.5rem;
     }
   }
+}
+
+.compact-table {
+  font-size: 0.93rem;
+  th, td {
+    padding: 0.32rem 0.5rem !important;
+    line-height: 1.1;
+  }
+  th {
+    font-weight: 600;
+    background: #f9fafb;
+    color: #1f2937;
+    border-bottom: 1.5px solid #e5e7eb;
+  }
+  td {
+    border-bottom: 1px solid #e5e7eb;
+    color: #374151;
+  }
+  tr:hover {
+    background: #f3f4f6;
+  }
+}
+
+// Centrage et largeur max des tableaux
+.content, .card-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.compact-table, .p-table, .p-datatable {
+  max-width: 500px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.card {
+  background: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.06);
+  border: 1px solid #e5e7eb;
+  margin-bottom: 1.5rem;
+}
+
+.card-header {
+  padding: 0.8rem 1.2rem;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f9fafb;
+  h6 {
+    margin: 0;
+    color: #1f2937;
+    font-weight: 600;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+}
+
+.card-body {
+  padding: 0.7rem 1.2rem;
+}
+
+.mt-4 {
+  margin-top: 2rem;
+}
+
+.text-success {
+  color: #22c55e !important;
+}
+.text-danger {
+  color: #ef4444 !important;
 } 

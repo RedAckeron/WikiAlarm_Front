@@ -9,7 +9,7 @@ import { finalize } from 'rxjs/operators';
 import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
 
 interface StockItem {
-  id: string;
+  IdItem: number;
   Label: string;
   Qt: number;
 }
@@ -29,197 +29,203 @@ interface ItemOption {
 @Component({
   selector: 'app-vehicule-stock',
   template: `
-    <div class="stock-container">
-      <div class="header">
-        <h2>Stock du véhicule</h2>
-        <button pButton type="button" 
-                icon="pi pi-plus" 
-                label="Ajouter un article"
-                class="p-button-success" 
-                (click)="openAddDialog()"></button>
-      </div>
-
-      <div *ngIf="loading" class="loading-container">
-        <p-progressSpinner></p-progressSpinner>
-      </div>
-
-      <div *ngIf="!loading" class="content">
-        <p-table [value]="stockItems" [tableStyle]="{ 'min-width': '50rem' }">
-          <ng-template pTemplate="header">
-            <tr>
-              <th>Article</th>
-              <th style="width: 150px">Quantité</th>
-              <th style="width: 100px">Actions</th>
-            </tr>
-          </ng-template>
-          <ng-template pTemplate="body" let-item>
-            <tr>
-              <td>{{item.Label}}</td>
-              <td class="text-center">{{item.Qt}}</td>
-              <td>
-                <button pButton type="button" 
-                        icon="pi pi-minus" 
-                        class="p-button-danger p-button-rounded p-button-text"
-                        [disabled]="item.Qt <= 0"
-                        (click)="openRemoveDialog(item)"></button>
-              </td>
-            </tr>
-          </ng-template>
-          <ng-template pTemplate="emptymessage">
-            <tr>
-              <td colspan="3" class="text-center p-4">
-                Aucun article dans le stock
-              </td>
-            </tr>
-          </ng-template>
-        </p-table>
-      </div>
-
-      <!-- Dialog d'ajout -->
-      <p-dialog 
-        [(visible)]="showAddDialog" 
-        [header]="'Ajouter un article'"
-        [modal]="true"
-        [style]="{width: '650px', minHeight: '400px'}"
-        [contentStyle]="{overflow: 'visible'}"
-        [baseZIndex]="10000"
-        [draggable]="false"
-        [resizable]="false"
-        [closable]="!adding">
-        <div class="p-fluid dialog-content">
-          <div class="field">
-            <label for="materialType">Type de matériel</label>
-            <p-dropdown 
-              id="materialType" 
-              [options]="materialTypes" 
-              [(ngModel)]="selectedType"
-              (ngModelChange)="onTypeChange()"
-              optionLabel="Name"
-              [filter]="true"
-              [filterBy]="'Name'"
-              [showClear]="true"
-              placeholder="Sélectionner un type de matériel"
-              [disabled]="adding"
-              [autoDisplayFirst]="false"
-              styleClass="w-full"
-              [panelStyle]="{minWidth: '100%'}"
-              appendTo="body">
-              <ng-template pTemplate="item" let-type>
-                <div class="type-item">
-                  <div class="type-label">{{type.Name}}</div>
-                  <div class="type-description text-muted">{{type.Description}}</div>
-                </div>
-              </ng-template>
-            </p-dropdown>
+    <div class="vehicle-container">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">
+            <i class="pi pi-box text-primary"></i>
+            Stock du véhicule
+          </h5>
+          <button pButton 
+                  type="button" 
+                  icon="pi pi-plus" 
+                  label="Ajouter un article"
+                  class="p-button-success p-button-sm"
+                  (click)="openAddDialog()"></button>
+        </div>
+        <div class="card-body">
+          <div *ngIf="loading" class="loading-state text-center p-4">
+            <p-progressSpinner></p-progressSpinner>
+            <p class="mt-3">Chargement du stock...</p>
           </div>
-
-          <div class="field" *ngIf="selectedType">
-            <label for="article">Article</label>
-            <p-dropdown 
-              id="article" 
-              [options]="availableItems" 
-              [(ngModel)]="selectedAddItem"
-              optionLabel="Name"
-              [filter]="true"
-              [filterBy]="'Name'"
-              [showClear]="true"
-              placeholder="Sélectionner un article"
-              [disabled]="adding"
-              [autoDisplayFirst]="false"
-              styleClass="w-full"
-              [panelStyle]="{minWidth: '100%'}"
-              appendTo="body">
-              <ng-template pTemplate="item" let-item>
-                <div class="item-info">
-                  <div class="item-name">{{item.Name}}</div>
-                  <div class="item-description text-muted">{{item.Description}}</div>
-                </div>
-              </ng-template>
-            </p-dropdown>
+          <div *ngIf="!loading && stockItems.length === 0" class="alert alert-info text-center p-4">
+            <i class="pi pi-info-circle" style="font-size: 2rem;"></i>
+            <p class="mt-3">Aucun article dans le stock de ce véhicule.</p>
           </div>
-
-          <div class="field" *ngIf="selectedAddItem">
-            <label for="addQuantity">Quantité</label>
-            <p-inputNumber 
-              id="addQuantity" 
-              [(ngModel)]="addQuantity"
-              [min]="1" 
-              [max]="999"
-              [showButtons]="true"
-              buttonLayout="horizontal"
-              spinnerMode="horizontal"
-              [step]="1"
-              [disabled]="adding"
-              styleClass="w-full"
-              inputStyleClass="text-center">
-            </p-inputNumber>
+          <div *ngIf="!loading && stockItems.length > 0" class="content">
+            <p-table [value]="stockItems" styleClass="p-datatable-sm p-datatable-striped compact-table">
+              <ng-template pTemplate="header">
+                <tr>
+                  <th>Article</th>
+                  <th style="width: 120px">Quantité</th>
+                  <th style="width: 100px">Actions</th>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="body" let-item>
+                <tr>
+                  <td>{{item.Label}}</td>
+                  <td class="text-center">{{item.Qt}}</td>
+                  <td>
+                    <button pButton type="button"
+                            icon="pi pi-minus"
+                            class="p-button-danger p-button-rounded p-button-text"
+                            [disabled]="item.Qt <= 0"
+                            (click)="openRemoveDialog(item)"></button>
+                  </td>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="emptymessage">
+                <tr>
+                  <td colspan="3" class="text-center p-4">
+                    Aucun article dans le stock
+                  </td>
+                </tr>
+              </ng-template>
+            </p-table>
           </div>
         </div>
+      </div>
 
-        <ng-template pTemplate="footer">
-          <div class="dialog-footer">
-            <button pButton 
-                    label="Annuler" 
-                    icon="pi pi-times" 
-                    class="p-button-text" 
-                    (click)="onCancelAdd()"
-                    [disabled]="adding"></button>
-            <button pButton 
-                    label="Ajouter" 
-                    icon="pi pi-check" 
-                    class="p-button-success" 
-                    (click)="onConfirmAdd()"
-                    [loading]="adding"
-                    [disabled]="!isAddValid()"></button>
+      <!-- Pop-up d'ajout d'article -->
+      <p-dialog [(visible)]="showAddDialog"
+                header="Ajouter un article"
+                [modal]="true"
+                [style]="{width: '400px'}"
+                [closable]="!adding">
+        <div class="p-fluid">
+          <div class="field mb-3">
+            <label for="addType">Type de matériel</label>
+            <p-dropdown id="addType"
+                        [options]="materialTypes"
+                        [(ngModel)]="selectedType"
+                        optionLabel="Name"
+                        placeholder="Sélectionner un type"
+                        (onChange)="onTypeChange()"
+                        [disabled]="adding"></p-dropdown>
           </div>
+          <div class="field mb-3">
+            <label for="addArticle">Article</label>
+            <p-dropdown id="addArticle"
+                        [options]="availableItems"
+                        [(ngModel)]="selectedAddItem"
+                        optionLabel="Name"
+                        placeholder="Sélectionner un article"
+                        [disabled]="adding || !selectedType"></p-dropdown>
+          </div>
+          <div class="field mb-3">
+            <label for="addQuantity">Quantité</label>
+            <p-inputNumber id="addQuantity"
+                           [(ngModel)]="addQuantity"
+                           [min]="1"
+                           [showButtons]="true"
+                           buttonLayout="horizontal"
+                           spinnerMode="horizontal"
+                           [step]="1"
+                           [disabled]="adding"
+                           styleClass="w-full"
+                           inputStyleClass="text-center"></p-inputNumber>
+          </div>
+        </div>
+        <ng-template pTemplate="footer">
+          <button pButton type="button"
+                  label="Annuler"
+                  icon="pi pi-times"
+                  class="p-button-text"
+                  (click)="onCancelAdd()"
+                  [disabled]="adding"></button>
+          <button pButton type="button"
+                  label="Ajouter"
+                  icon="pi pi-check"
+                  class="p-button-success"
+                  (click)="onConfirmAdd()"
+                  [loading]="adding"
+                  [disabled]="!selectedAddItem || addQuantity <= 0"></button>
         </ng-template>
       </p-dialog>
 
-      <!-- Dialog de retrait -->
-      <p-dialog 
-        [(visible)]="showRemoveDialog" 
-        [header]="'Retirer ' + (selectedItem?.Label || '')"
-        [modal]="true"
-        [style]="{width: '450px'}"
-        [closable]="!removing">
-        <div class="p-fluid">
-          <div class="field">
-            <label for="quantity">Quantité à retirer</label>
-            <p-inputNumber 
-              [(ngModel)]="removeQuantity"
-              [min]="1"
-              [max]="selectedItem?.Qt || 0"
-              [showButtons]="true"
-              buttonLayout="horizontal"
-              spinnerMode="horizontal"
-              inputId="quantity"
-              [step]="1"
-              [disabled]="removing">
-            </p-inputNumber>
-          </div>
+      <!-- Historique du stock -->
+      <div class="card mt-4">
+        <div class="card-header d-flex align-items-center">
+          <h6 class="mb-0"><i class="pi pi-history text-primary"></i> Historique du stock</h6>
+        </div>
+        <div class="card-body p-0">
+          <p-table [value]="stockHistory" styleClass="p-datatable-sm p-datatable-striped compact-table">
+            <ng-template pTemplate="header">
+              <tr>
+                <th>Date</th>
+                <th>Article</th>
+                <th>Quantité</th>
+                <th>Type</th>
+                <th>Remarque</th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-histo>
+              <tr>
+                <td>{{histo.date}}</td>
+                <td>{{histo.article}}</td>
+                <td class="text-center">{{histo.quantity}}</td>
+                <td>
+                  <span [ngClass]="{'text-success': histo.type === 'ajout', 'text-danger': histo.type === 'retrait'}">
+                    <i class="pi" [ngClass]="{'pi-plus-circle': histo.type === 'ajout', 'pi-minus-circle': histo.type === 'retrait'}"></i>
+                    {{histo.type | titlecase}}
+                  </span>
+                </td>
+                <td>{{histo.remarque}}</td>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="emptymessage">
+              <tr>
+                <td colspan="5" class="text-center p-3">
+                  Aucun historique disponible
+                </td>
+              </tr>
+            </ng-template>
+          </p-table>
+        </div>
+      </div>
 
-          <div class="field">
-            <label for="client">Nom du client *</label>
-            <input pInputText 
-                   id="client" 
-                   type="text" 
+      <!-- Pop-up de retrait -->
+      <p-dialog [(visible)]="showRemoveDialog" 
+                [header]="'Retirer ' + (selectedItem?.Label || '')"
+                [modal]="true"
+                [style]="{width: '400px'}"
+                [closable]="!removing">
+        <div class="p-fluid">
+          <div class="field mb-3">
+            <label for="removeQuantity">Quantité à retirer</label>
+            <p-inputNumber id="removeQuantity"
+                           [(ngModel)]="removeQuantity"
+                           [min]="1"
+                           [max]="selectedItem?.Qt || 0"
+                           [showButtons]="true"
+                           buttonLayout="horizontal"
+                           spinnerMode="horizontal"
+                           [step]="1"
+                           [disabled]="removing"
+                           styleClass="w-full"
+                           inputStyleClass="text-center"></p-inputNumber>
+          </div>
+          <div class="field mb-3">
+            <label for="clientName">Nom du client *</label>
+            <input pInputText id="clientName"
+                   type="text"
                    [(ngModel)]="clientName"
                    [disabled]="removing"
-                   placeholder="Entrez le nom du client">
+                   placeholder="Entrez le nom du client"
+                   class="w-full">
           </div>
         </div>
-
         <ng-template pTemplate="footer">
-          <button pButton 
-                  label="Annuler" 
-                  icon="pi pi-times" 
-                  class="p-button-text" 
+          <button pButton type="button"
+                  label="Annuler"
+                  icon="pi pi-times"
+                  class="p-button-text"
                   (click)="cancelRemove()"
                   [disabled]="removing"></button>
-          <button pButton 
-                  label="Retirer" 
-                  icon="pi pi-check" 
-                  class="p-button-danger" 
+          <button pButton type="button"
+                  label="Retirer"
+                  icon="pi pi-check"
+                  class="p-button-danger"
                   (click)="confirmRemove()"
                   [loading]="removing"
                   [disabled]="!isRemoveValid()"></button>
@@ -227,53 +233,7 @@ interface ItemOption {
       </p-dialog>
     </div>
   `,
-  styles: [`
-    .stock-container {
-      padding: 1.5rem;
-    }
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 2rem;
-    }
-    .header h2 {
-      margin: 0;
-    }
-    .loading-container {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 200px;
-    }
-    .text-center {
-      text-align: center;
-    }
-    .field {
-      margin-bottom: 1.5rem;
-    }
-    .field:last-child {
-      margin-bottom: 0;
-    }
-    .field label {
-      display: block;
-      margin-bottom: 0.5rem;
-    }
-    .type-item, .item-info {
-      padding: 0.5rem 0;
-    }
-    .type-label, .item-name {
-      font-weight: 500;
-      margin-bottom: 0.25rem;
-    }
-    .type-description, .item-description {
-      font-size: 0.875rem;
-      color: #666;
-    }
-    .text-muted {
-      color: #6c757d;
-    }
-  `]
+  styleUrls: ['./vehicule-stock.component.scss']
 })
 export class VehiculeStockComponent implements OnInit {
   public loading = false;
@@ -324,6 +284,7 @@ export class VehiculeStockComponent implements OnInit {
       this.vehicleId = parseInt(params['id'], 10);
       this.loadStockData();
       this.loadHardwareTypes();
+      this.loadStockHistory();
     });
   }
 
@@ -443,6 +404,7 @@ export class VehiculeStockComponent implements OnInit {
         });
         this.showAddDialog = false;
         this.loadStockData();
+        this.loadStockHistory();
         this.resetAddForm();
       },
       error: (error) => {
@@ -471,8 +433,9 @@ export class VehiculeStockComponent implements OnInit {
 
     this.stockService.removeItemFromVehicleStock(
       this.vehicleId,
-      parseInt(this.selectedItem.id, 10),
-      formValue.quantity
+      this.selectedItem.IdItem,
+      formValue.quantity,
+      formValue.client
     )
     .pipe(finalize(() => {
       this.loading = false;
@@ -526,7 +489,7 @@ export class VehiculeStockComponent implements OnInit {
           console.log('Réponse API stock:', response);
           if (response && response.JsonResult) {
             this.stockItems = response.JsonResult.map((item: any) => ({
-              id: item.IdItem || item.id,
+              IdItem: item.IdItem,
               Label: item.ItemName,
               Qt: item.Qt
             }));
@@ -574,8 +537,9 @@ export class VehiculeStockComponent implements OnInit {
     this.removing = true;
     this.stockService.removeItemFromVehicleStock(
       this.vehicleId,
-      parseInt(this.selectedItem.id, 10),
-      this.removeQuantity
+      this.selectedItem.IdItem,
+      this.removeQuantity,
+      this.clientName
     ).pipe(
       finalize(() => this.removing = false)
     ).subscribe({
@@ -587,6 +551,7 @@ export class VehiculeStockComponent implements OnInit {
         });
         this.showRemoveDialog = false;
         this.loadStockData();
+        this.loadStockHistory();
         this.resetRemoveForm();
       },
       error: (error) => {
@@ -601,10 +566,6 @@ export class VehiculeStockComponent implements OnInit {
   }
 
   public openAddDialog(): void {
-    this.selectedType = null;
-    this.selectedAddItem = null;
-    this.addQuantity = 1;
-    this.availableItems = [];
     this.showAddDialog = true;
   }
 
@@ -625,5 +586,36 @@ export class VehiculeStockComponent implements OnInit {
     this.selectedItem = null;
     this.removeQuantity = 1;
     this.clientName = '';
+  }
+
+  private formatShortDate(dateStr: string): string {
+    if (!dateStr) return '-';
+    // Attend un format 'YYYY-MM-DD HH:mm:ss' ou 'YYYY-MM-DD'
+    const match = dateStr.match(/(\d{4})-(\d{2})-(\d{2})/);
+    if (!match) return dateStr;
+    const [, year, month, day] = match;
+    return `${day}/${month}/${year.slice(2)}`;
+  }
+
+  private loadStockHistory(): void {
+    this.stockService.getHistoryByCar(this.vehicleId)
+      .subscribe({
+        next: (response) => {
+          if (response && response.JsonResult) {
+            this.stockHistory = response.JsonResult.map((histo: any) => ({
+              date: this.formatShortDate(histo.Date),
+              article: histo.Article || '-',
+              quantity: Math.abs(Number(histo.Qt)),
+              type: Number(histo.Qt) > 0 ? 'ajout' : 'retrait',
+              remarque: histo.Remarque || '-'
+            }));
+          } else {
+            this.stockHistory = [];
+          }
+        },
+        error: () => {
+          this.stockHistory = [];
+        }
+      });
   }
 } 

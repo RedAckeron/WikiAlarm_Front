@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { ProfilComponent } from './profil.component';
+import { StockModule } from './stock/stock.module';
 
 // PrimeNG Modules
 import { ToastModule } from 'primeng/toast';
@@ -21,6 +22,7 @@ import { MessageService } from 'primeng/api';
     FormsModule,
     ReactiveFormsModule,
     RouterModule,
+    StockModule,
     ToastModule,
     ConfirmDialogModule,
     ProgressSpinnerModule,

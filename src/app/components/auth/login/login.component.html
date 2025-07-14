@@ -1,0 +1,40 @@
+<div class="login-container">
+    <div class="login-box">
+        <div class="logo-container">
+            <img src="assets/img/LogoBanner.gif" alt="Logo" class="logo">
+        </div>
+
+        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+            <div class="p-field">
+                <label for="Email">Email</label>
+                <input id="Email" type="email" pInputText formControlName="Email" class="p-inputtext p-component">
+                <small class="p-error" *ngIf="loginForm.get('Email')?.invalid && loginForm.get('Email')?.touched">
+                    Email invalide
+                </small>
+            </div>
+
+            <div class="p-field">
+                <label for="Password">Mot de passe</label>
+                <input id="Password" type="password" pInputText formControlName="Password" class="p-inputtext p-component">
+                <small class="p-error" *ngIf="loginForm.get('Password')?.invalid && loginForm.get('Password')?.touched">
+                    Mot de passe requis
+                </small>
+            </div>
+
+            <div *ngIf="errorMessage" class="p-error error-message">
+                {{ errorMessage }}
+            </div>
+
+            <div *ngIf="isSessionExpired" class="session-expired-message">
+                Votre session a expiré. Veuillez vous reconnecter.
+            </div>
+
+            <button pButton type="submit" label="Se connecter" [loading]="loading"></button>
+        </form>
+
+        <div class="footer">
+            Created by RedLife - KeyProd 2023
+        </div>
+    </div>
+</div>
+<p-toast position="bottom-right"></p-toast>

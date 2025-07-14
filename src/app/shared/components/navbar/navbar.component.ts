@@ -93,7 +93,7 @@ export class NavbarComponent implements OnInit {
         items: this.workTypes && this.workTypes.length > 0 ? this.workTypes.map(metier => ({
           label: metier.Name,
           icon: 'pi pi-briefcase',
-          routerLink: ['/Wiki', metier.Name ? metier.Name.toLowerCase() : '']
+          routerLink: ['/wiki', 'metier', metier.Id]
         })) : [
           {label: 'Aucun métier trouvé', disabled: true}
         ]
@@ -107,15 +107,15 @@ export class NavbarComponent implements OnInit {
         items: [
           {label: 'Tableau de bord', icon: 'pi pi-chart-bar', routerLink: ['/Admin']},
           {separator: true},
-          {label: 'Gestion Utilisateur', icon: 'pi pi-user-plus', routerLink: ['/Admin/gestion-utilisateur']},
-          {label: 'Gestion Véhicule', icon: 'pi pi-car', routerLink: ['/Admin/gestion-vehicule']},
-          {label: 'Gestion Entreprise', icon: 'pi pi-building', routerLink: ['/Admin/gestion-entreprise']},
+          {label: 'Gestion Utilisateur', icon: 'pi pi-user-plus', routerLink: ['/admin/gestion-utilisateur']},
+          {label: 'Gestion Véhicule', icon: 'pi pi-car', routerLink: ['/admin/gestion-vehicule']},
+          {label: 'Gestion Entreprise', icon: 'pi pi-building', routerLink: ['/admin/gestion-entreprise']},
           {separator: true},
-          {label: 'Gestion Item', icon: 'pi pi-box', routerLink: ['/Admin/gestion-item']},
-          {label: 'Type de matériel', icon: 'pi pi-cog', routerLink: ['/Admin/type-materiel']},
-          {label: 'Stock Utilisateur', icon: 'pi pi-users', routerLink: ['/Admin/stock-utilisateur']},
+          {label: 'Gestion Item', icon: 'pi pi-box', routerLink: ['/admin/gestion-item']},
+          {label: 'Type de matériel', icon: 'pi pi-cog', routerLink: ['/admin/type-materiel']},
+          {label: 'Stock Utilisateur', icon: 'pi pi-users', routerLink: ['/admin/stock-utilisateur']},
           {separator: true},
-          {label: 'Calendrier', icon: 'pi pi-calendar', routerLink: ['/Admin/calendrier']}
+          {label: 'Calendrier', icon: 'pi pi-calendar', routerLink: ['/admin/calendrier']}
         ]
       });
     }

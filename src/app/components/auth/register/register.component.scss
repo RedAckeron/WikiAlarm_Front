@@ -1,0 +1,108 @@
+label{
+    width:100px
+}
+
+.ContainerLogin
+{  
+    width: 400px;
+    display: flex;
+    justify-content: center;
+    height: auto;   
+    margin: 20px auto;
+    border : 1px solid black;
+    border-radius: 10px;    
+    padding: 10px;
+    background-color: #F8F9FA ;   
+    border: 1px solid black;
+    border-radius: 5px;
+}
+
+.ContainerRegister
+{  
+    width: 400px;
+    display: flex;
+    justify-content: center;
+    height: auto;   
+    margin: 20px auto;
+    border : 1px solid black;
+    border-radius: 10px;    
+    padding: 2px;
+    background-color: #F8F9FA ;   
+    border: 1px solid black;
+    border-radius: 5px;
+}
+input.invalid {
+  border: 1px solid crimson;
+  background-color: #ffe6e6;
+}
+
+.error {
+  color: crimson;
+  font-size: 0.9em;
+  margin-top: 4px;
+}
+
+.card {
+  max-width: 500px;
+  margin: 2rem auto;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background-color: white;
+
+  h2 {
+    text-align: center;
+    margin-bottom: 2rem;
+    color: #333;
+  }
+}
+
+.p-field {
+  margin-bottom: 1.5rem;
+
+  label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #666;
+    font-weight: 500;
+  }
+
+  .p-inputtext-lg {
+    width: 100%;
+  }
+
+  .p-password {
+    width: 100%;
+  }
+
+  .p-error {
+    color: #f44336;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+  }
+}
+
+.p-button {
+  width: 100%;
+  margin-top: 1rem;
+
+  &.p-button-secondary {
+    background-color: #6c757d;
+    border-color: #6c757d;
+
+    &:hover {
+      background-color: #5a6268;
+      border-color: #545b62;
+    }
+  }
+}
+
+:host ::ng-deep {
+  .p-password-input {
+    width: 100%;
+  }
+
+  .p-password-panel {
+    min-width: 300px;
+  }
+}

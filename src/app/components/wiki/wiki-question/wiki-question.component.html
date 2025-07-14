@@ -1,0 +1,116 @@
+<div class="work-container">
+  <h2><span>{{ marqueName }} - {{ modeleName }}</span></h2>
+  
+  <!-- Accordéon des questions/réponses -->
+  <p-accordion *ngIf="questions.length > 0">
+    <p-accordionTab *ngFor="let question of questions">
+      <ng-template pTemplate="header">
+        <span>{{ question.Question || question.Text || 'Question sans titre' }}</span>
+        <button *ngIf="isAdmin" pButton type="button" icon="pi pi-pencil" class="p-button-text p-button-sm" style="margin-left:10px" (click)="openEditQuestionDialog(question); $event.stopPropagation();"></button>
+      </ng-template>
+      <div class="response-content">
+        <!-- Affichage de la réponse -->
+        <div *ngIf="!editingResponse[question.Id]" class="response-display">
+          <div *ngIf="getLastReponse(question) as lastRep; else noRep" class="current-response">
+            <p><strong>Réponse :</strong></p>
+            <div [innerHTML]="lastRep | newlineToBr"></div>
+          </div>
+          <ng-template #noRep>
+            <div class="no-response">
+              <p><em>Aucune réponse disponible</em></p>
+            </div>
+          </ng-template>
+          <button pButton type="button" 
+                  label="Modifier la réponse" 
+                  class="p-button-sm p-button-outlined"
+                  (click)="startEditingResponse(question.Id, question.Response || question.Reponse)">
+          </button>
+          <a href="#" (click)="openHistorique(question); $event.preventDefault()" style="margin-left: 20px; font-size: 0.9em;">Voir l'historique des réponses</a>
+        </div>
+        
+        <!-- Édition de la réponse -->
+        <div *ngIf="editingResponse[question.Id]" class="response-edit">
+          <p><strong>Modifier la réponse :</strong></p>
+          <textarea pInputTextarea 
+                    [(ngModel)]="editedResponses[question.Id]" 
+                    rows="6" 
+                    cols="50" 
+                    placeholder="Entrez votre réponse..."
+                    style="width: 100%;">
+          </textarea>
+          <div class="edit-buttons" style="margin-top: 10px;">
+            <button pButton type="button" 
+                    label="Sauvegarder" 
+                    class="p-button-sm p-button-success"
+                    (click)="saveResponse(question.Id)">
+            </button>
+            <button pButton type="button" 
+                    label="Annuler" 
+                    class="p-button-sm p-button-secondary"
+                    (click)="cancelEditingResponse(question.Id)"
+                    style="margin-left: 10px;">
+            </button>
+          </div>
+        </div>
+      </div>
+    </p-accordionTab>
+  </p-accordion>
+  
+  <!-- Message si aucune question -->
+  <div *ngIf="questions.length === 0" class="no-questions">
+    <p><em>Aucune question disponible pour ce modèle</em></p>
+  </div>
+  
+  <!-- Formulaire d'ajout de question -->
+  <div class="ajout-question" style="margin-top: 20px;">
+    <h3>Ajouter une nouvelle question</h3>
+    <textarea pInputTextarea 
+              [(ngModel)]="newQuestionText" 
+              rows="3" 
+              cols="50" 
+              placeholder="Entrez votre question..."
+              style="width: 100%;">
+    </textarea>
+    <br>
+    <button pButton type="button" 
+            label="Ajouter la question" 
+            (click)="addQuestion()"
+            style="margin-top: 10px;">
+    </button>
+  </div>
+</div>
+
+<p-dialog header="Historique des réponses" [(visible)]="historiqueDialogVisible" [modal]="true" [style]="{width: '95vw', maxWidth: '600px'}" [contentStyle]="{'max-height':'70vh','overflow':'auto','padding':'0 8px'}" (onHide)="closeHistorique()">
+  <div *ngIf="historiqueQuestion" style="margin-bottom: 10px;">
+    <p style="font-weight:bold; margin-bottom:4px;">Question :</p>
+    <div style="font-size:1.1em; color:#222;">{{ historiqueQuestion.Question || historiqueQuestion.Text }}</div>
+  </div>
+  <div *ngIf="historiqueReponses.length > 0">
+    <ul style="padding-left:0; list-style:none;">
+      <li *ngFor="let rep of historiqueReponses" style="margin-bottom: 18px; border-bottom:1px solid #eee; padding-bottom:8px;">
+        <div style="font-size:0.95em; color:#888; margin-bottom:2px;">
+          <span><i class="pi pi-clock"></i> {{ rep.DtIn * 1000 | date:'dd/MM/yyyy HH:mm' }}</span>
+        </div>
+        <div style="font-size:1em; color:#222; white-space:pre-line; word-break:break-word;">
+          {{ rep.Reponse || rep.Response }}
+        </div>
+      </li>
+    </ul>
+  </div>
+  <div *ngIf="historiqueReponses.length === 0">
+    <em>Aucune réponse enregistrée pour cette question.</em>
+  </div>
+  <div style="text-align:right; margin-top:10px;">
+    <button pButton type="button" label="Fermer" (click)="closeHistorique()" class="p-button-sm"></button>
+  </div>
+</p-dialog>
+
+<p-dialog header="Éditer la question" [(visible)]="editQuestionDialogVisible" [modal]="true" [style]="{width: '500px'}" (onHide)="closeEditQuestionDialog()">
+  <div *ngIf="questionToEdit">
+    <textarea pInputTextarea [(ngModel)]="editedQuestionText" rows="3" cols="50" style="width:100%"></textarea>
+    <div style="margin-top:10px;">
+      <button pButton type="button" label="Sauvegarder" class="p-button-success p-button-sm" (click)="saveEditedQuestion()"></button>
+      <button pButton type="button" label="Annuler" class="p-button-secondary p-button-sm" (click)="closeEditQuestionDialog()" style="margin-left:10px;"></button>
+    </div>
+  </div>
+</p-dialog> 

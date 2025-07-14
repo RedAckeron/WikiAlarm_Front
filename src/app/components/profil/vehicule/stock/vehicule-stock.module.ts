@@ -15,13 +15,11 @@ import { DropdownModule } from 'primeng/dropdown';
 
 import { VehiculeStockComponent } from './vehicule-stock.component';
 import { VehiculeStockRoutingModule } from './vehicule-stock-routing.module';
-import { VehiculeStockAddComponent } from './add/vehicule-stock-add.component';
 import { VehiculeStockRemoveComponent } from './remove/vehicule-stock-remove.component';
 
 @NgModule({
   declarations: [
     VehiculeStockComponent,
-    VehiculeStockAddComponent,
     VehiculeStockRemoveComponent
   ],
   imports: [
